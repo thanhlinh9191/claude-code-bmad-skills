@@ -13,7 +13,7 @@
 
 ---
 
-# Documentation Site, with exapmples.
+# Documentation Site, with examples.
 
 https://aj-geddes.github.io/claude-code-bmad-skills
 
