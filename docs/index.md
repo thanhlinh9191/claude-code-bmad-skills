@@ -12,7 +12,7 @@ keywords: "Claude Code, BMAD Method, agile development, AI development, Claude s
 <p class="hero-subtitle">A complete agile development methodology converted to Claude Code native features</p>
 
 <div class="badges">
-<a href="https://github.com/aj-geddes/claude-code-bmad-skills/releases"><img src="https://img.shields.io/badge/version-6.0.3-blue.svg" alt="Version" /></a>
+<a href="https://github.com/aj-geddes/claude-code-bmad-skills/releases"><img src="https://img.shields.io/badge/version-7.1.0-blue.svg" alt="Version" /></a>
 <a href="https://github.com/aj-geddes/claude-code-bmad-skills/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License" /></a>
 <a href="#installation"><img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg" alt="Platform" /></a>
 </div>
@@ -42,15 +42,17 @@ This conversion adapts the BMAD Method to work natively with Claude Code's skill
 BMAD (Business Methodology for AI Development) transforms Claude Code into a full-featured agile development environment. Instead of using external tools or complex setups, everything works through Claude Code's native features:
 
 - **9 Specialized Skills** - AI agents for different roles (Analyst, PM, Architect, Developer, etc.)
-- **15 Workflow Commands** - Slash commands for every development phase
 - **4 Development Phases** - Analysis → Planning → Solutioning → Implementation
-- **Token-Optimized** - 70-85% reduction through helper patterns
+- **Subagent Architecture** - Parallel execution with 200K token context per agent
+- **Token-Optimized** - Progressive disclosure and efficient context management
 
 ### Key Benefits
 
 | Feature | Description |
 |---------|-------------|
-| **Native Integration** | Uses Claude Code's built-in skills and commands system |
+| **Native Integration** | Uses Claude Code's built-in skills system |
+| **Parallel Subagents** | Execute complex workflows using parallel agents, each with 200K token context (1M context available on Sonnet/Opus 4.6) |
+| **4 Subagent Types** | `general-purpose`, `Explore` (Haiku, fast), `Plan`, and `Bash` for right-sized execution |
 | **Complete Workflow** | From product brief to deployed code |
 | **Right-Sized Planning** | 5 project levels from single changes to enterprise systems |
 | **Cross-Platform** | Works on Windows, macOS, Linux, and WSL |
@@ -63,31 +65,35 @@ BMAD (Business Methodology for AI Development) transforms Claude Code into a ful
 ### For LLMs (Claude Code)
 
 ```
-1. Run /workflow-init to initialize BMAD in your project
-2. Run /workflow-status to see recommended next steps
-3. Follow the phase-appropriate commands
+1. Say "Initialize BMAD for this project" to activate bmad-orchestrator
+2. Say "What's my BMAD status?" to check workflow progress
+3. Follow the phase-appropriate skill workflows
 ```
 
 ### For Humans
 
-1. **Install BMAD:**
+1. **Install BMAD Skills:**
    ```bash
-   # Linux/macOS/WSL
+   # Clone the repository
    git clone https://github.com/aj-geddes/claude-code-bmad-skills.git
    cd claude-code-bmad-skills
-   ./install-v6.sh
 
-   # Windows PowerShell
-   git clone https://github.com/aj-geddes/claude-code-bmad-skills.git
-   cd claude-code-bmad-skills
-   .\install-v6.ps1
+   # Copy skills to Claude Code directory
+   cp -r bmad-skills ~/.claude/skills/bmad-skills
+   find ~/.claude/skills/bmad-skills -name "*.sh" -exec chmod +x {} \;
    ```
 
 2. **Restart Claude Code** (skills load on startup)
 
 3. **Initialize in your project:**
    ```
-   /workflow-init
+   Say: "Initialize BMAD for this project"
+
+   This creates:
+   - bmad/config.yaml (project configuration)
+   - bmad/context/ (shared subagent context)
+   - bmad/outputs/ (subagent outputs)
+   - docs/ (workflow outputs)
    ```
 
 ---
@@ -95,28 +101,28 @@ BMAD (Business Methodology for AI Development) transforms Claude Code into a ful
 ## The Four Phases
 
 ### Phase 1: Analysis
-**Skill:** Business Analyst
-**Commands:** `/product-brief`, `/brainstorm-project`, `/research`
+**Skills:** business-analyst, creative-intelligence
+**Say:** "Create a product brief" or "Research the market for [topic]"
 
-Discover requirements, research markets, and define the problem space.
+Discover requirements, research markets, and define the problem space. Uses parallel subagents for market/competitive/technical/user research.
 
 ### Phase 2: Planning
-**Skills:** Product Manager, UX Designer
-**Commands:** `/prd`, `/tech-spec`, `/create-ux-design`
+**Skills:** product-manager, ux-designer
+**Say:** "Create a PRD" or "Create UX design"
 
-Create comprehensive requirements and design documents.
+Create comprehensive requirements and design documents. Parallel section generation for efficient PRD creation.
 
 ### Phase 3: Solutioning
-**Skill:** System Architect
-**Commands:** `/architecture`, `/solutioning-gate-check`
+**Skills:** system-architect, ux-designer
+**Say:** "Design the system architecture" or "Run solutioning gate check"
 
-Design system architecture and validate against requirements.
+Design system architecture and validate against requirements. Parallel component design with integration architecture.
 
 ### Phase 4: Implementation
-**Skills:** Scrum Master, Developer
-**Commands:** `/sprint-planning`, `/create-story`, `/dev-story`
+**Skills:** scrum-master, developer
+**Say:** "Plan the sprint" or "Implement STORY-001"
 
-Plan sprints, create stories, and implement features.
+Plan sprints, create stories, and implement features. Parallel story implementation for independent tasks.
 
 ---
 
@@ -137,6 +143,11 @@ Plan sprints, create stories, and implement features.
 <div class="docs-card">
 <h3><a href="./commands/">Commands Reference</a></h3>
 <p>Complete guide to all 15 workflow commands.</p>
+</div>
+
+<div class="docs-card">
+<h3><a href="./subagent-patterns">Subagent Patterns</a></h3>
+<p>Learn how BMAD leverages parallel subagents for maximum efficiency.</p>
 </div>
 
 <div class="docs-card">
@@ -167,39 +178,54 @@ User: I want to build a task management app
 
 Claude: I'll help you build that! Let me initialize BMAD in your project.
 
-> /workflow-init
+[bmad-orchestrator skill activates]
 
-Created bmad/config.yaml with:
-- Project: Task Management App
-- Level: 2 (Medium feature set)
-- Type: web-app
+Created:
+- bmad/config.yaml (Project: Task Management App, Level: 2, Type: web-app)
+- bmad/context/ (shared subagent context)
+- bmad/outputs/ (subagent outputs)
+- docs/ (workflow documentation)
 
-> /workflow-status
+Project initialized as Level 2 (Medium feature set).
 
-Phase 1 - Analysis: Not started
-  Recommended: /product-brief
+Recommended next step: Create a product brief to define scope and goals.
 
-Let's start with a product brief to define your app's scope and goals.
+User: Create a product brief
 
-> /product-brief
+Claude: [business-analyst skill activates]
 
-[Interactive session to create comprehensive product brief]
+I'll create a comprehensive product brief using parallel research agents.
 
-Output saved to: docs/product-brief.md
+Launching subagents:
+- Agent 1: Market research
+- Agent 2: Competitive analysis
+- Agent 3: Technical feasibility
+- Agent 4: User needs analysis
 
-> /workflow-status
+[After parallel execution]
+
+Output saved to: docs/product-brief-[timestamp].md
+
+Phase 1 complete. Ready for Phase 2 (Planning).
+
+User: What's my BMAD status?
+
+Claude: [bmad-orchestrator skill activates]
 
 Phase 1 - Analysis: Complete ✓
 Phase 2 - Planning: Not started
-  Recommended: /prd (for Level 2+ projects)
 
-Ready to create your Product Requirements Document?
+Recommended: Create a PRD (for Level 2+ projects)
 
-> /prd
+User: Create a PRD
 
-[Interactive session to define features, user stories, acceptance criteria]
+Claude: [product-manager skill activates]
 
-Output saved to: docs/prd.md
+I'll create your PRD using parallel section generation...
+
+[Parallel agents generate FR, NFR, Epics, and Stories sections]
+
+Output saved to: docs/prd-[timestamp].md
 ...
 ```
 
@@ -221,17 +247,17 @@ BMAD right-sizes your planning based on project complexity:
 
 ## Skills Overview
 
-| Skill | Module | Phase | Purpose |
-|-------|--------|-------|---------|
-| [BMad Master](./skills/bmad-master) | Core | All | Orchestration and routing |
-| [Business Analyst](./skills/analyst) | BMM | 1 | Requirements discovery |
-| [Product Manager](./skills/pm) | BMM | 2 | PRD and planning |
-| [UX Designer](./skills/ux-designer) | BMM | 2-3 | Interface design |
-| [System Architect](./skills/architect) | BMM | 3 | Technical architecture |
-| [Scrum Master](./skills/scrum-master) | BMM | 4 | Sprint planning |
-| [Developer](./skills/developer) | BMM | 4 | Implementation |
-| [Builder](./skills/builder) | BMB | N/A | Custom agents/workflows |
-| [Creative Intelligence](./skills/creative-intelligence) | CIS | Any | Brainstorming/research |
+| Skill | Phase | Purpose | Subagent Strategy |
+|-------|-------|---------|-------------------|
+| [bmad-orchestrator](./skills/#bmad-orchestrator) | All | Orchestration and routing | Parallel status checks |
+| [business-analyst](./skills/#business-analyst) | 1 | Requirements discovery | 4-way parallel research |
+| [product-manager](./skills/#product-manager) | 2 | PRD and planning | Parallel section generation |
+| [ux-designer](./skills/#ux-designer) | 2-3 | Interface design | Parallel screen design |
+| [system-architect](./skills/#system-architect) | 3 | Technical architecture | Parallel component design |
+| [scrum-master](./skills/#scrum-master) | 4 | Sprint planning | Parallel epic breakdown |
+| [developer](./skills/#developer) | 4 | Implementation | Parallel story implementation |
+| [creative-intelligence](./skills/#creative-intelligence) | Any | Brainstorming/research | Multi-technique parallel |
+| [builder](./skills/#builder) | N/A | Custom skills/workflows | Parallel component creation |
 
 ---
 
@@ -243,11 +269,12 @@ Traditional development methodologies require:
 - Context switching between tools
 - Manual status tracking
 
-BMAD for Claude Code provides:
-- **Single Interface** - Everything in your terminal
-- **Persistent Context** - YAML status files maintain state
-- **Intelligent Routing** - Automatic workflow recommendations
-- **Token Efficiency** - Optimized for Claude's context window
+BMAD Skills provides:
+- **Single Interface** - Everything in your terminal through natural language
+- **Parallel Execution** - Subagents with 200K tokens each for massive parallelization
+- **Persistent Context** - Shared context via bmad/context/ for agent coordination
+- **Intelligent Routing** - Automatic skill activation based on user intent
+- **Token Efficiency** - Progressive disclosure and efficient context management
 
 ---
 
@@ -263,6 +290,8 @@ BMAD for Claude Code provides:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 7.1.0 | 2026-02-22 | Updated for Claude Sonnet/Opus 4.6; correct hook format with `type` field and matcher structure; added Bash subagent type; 1M context window notes; worktree isolation docs; new hook events reference |
+| 7.0.0 | 2025-12-09 | bmad-skills architecture with subagent patterns |
 | 6.0.3 | 2025-11-12 | PowerShell WSL fixes |
 | 6.0.2 | 2025-11-12 | Added slash commands installation |
 | 6.0.1 | 2025-11-12 | PowerShell installer rewrite |

@@ -30,6 +30,7 @@ header_pages:
   - getting-started.md
   - skills/index.md
   - commands/index.md
+  - subagent-patterns.md
   - examples/index.md
 
 # Plugins
@@ -100,3 +101,7 @@ keywords:
   - sprint planning
   - AI pair programming
   - software development methodology
+  - parallel subagents
+  - Claude subagent architecture
+  - AI agent orchestration
+  - 200K token context

@@ -15,11 +15,279 @@ Learn BMAD through complete, real-world examples. Each example shows the full wo
 
 | Example | Level | Type | Skills Used |
 |---------|-------|------|-------------|
+| [Subagent Execution](#subagent-execution) | N/A | Pattern | Parallel coordination |
 | [E-commerce API](#e-commerce-api) | 2 | API | Full workflow |
 | [CLI Tool](#cli-tool) | 1 | Library | Tech spec only |
 | [Bug Fix](#bug-fix) | 0 | Atomic | Minimal workflow |
 | [Mobile App](#mobile-app) | 3 | Mobile | Full + UX design |
 | [Feature Research](#feature-research) | N/A | Research | Creative Intelligence |
+
+---
+
+<h2 id="subagent-execution">Subagent Execution Example</h2>
+
+Understanding how BMAD skills leverage parallel subagents for maximum efficiency.
+
+### Core Concept
+
+Each Claude subagent gets its own 200K token context window. BMAD skills decompose complex workflows into independent subtasks that run in parallel, then synthesize results.
+
+**Principle:** Never do sequentially what can be done in parallel.
+
+### Example: Product Manager Creating PRD
+
+When you run `/prd`, the Product Manager skill doesn't write the entire document sequentially. Instead, it coordinates parallel subagents.
+
+#### Step 1: Main Agent Prepares Context
+
+```
+User: /prd
+
+Claude (Product Manager): Creating PRD based on product brief...
+
+Loading: docs/product-brief.md
+```
+
+The main agent writes shared context to a file:
+
+```markdown
+# bmad/context/prd-context.md
+
+Project: E-commerce Product Catalog API
+Level: 2
+Type: API
+
+## Key Requirements (from product brief)
+- Product and category management
+- Search with autocomplete
+- Real-time inventory
+- Multi-warehouse support
+- Performance: <100ms P95
+- Scale: 1000 RPS
+
+## Target Deliverables
+- Functional Requirements section
+- Non-Functional Requirements section
+- Epics and User Stories
+- Dependencies and Constraints
+```
+
+#### Step 2: Launch Parallel Agents
+
+The main agent launches 4 subagents simultaneously using the Task tool:
+
+```python
+# Pseudocode representation
+agent1 = Task(
+  subagent_type="general-purpose",
+  run_in_background=True,
+  prompt="""
+  ## Task: Write Functional Requirements section
+
+  ## Context
+  Read: bmad/context/prd-context.md
+
+  ## Objective
+  Define all functional requirements for the E-commerce API.
+  Include: Products, Categories, Search, Inventory, Pricing.
+  Format as FR-001, FR-002, etc. with clear acceptance criteria.
+
+  ## Output Location
+  Write results to: bmad/outputs/agent-fr.md
+  """
+)
+
+agent2 = Task(
+  subagent_type="general-purpose",
+  run_in_background=True,
+  prompt="""
+  ## Task: Write Non-Functional Requirements section
+
+  ## Context
+  Read: bmad/context/prd-context.md
+
+  ## Objective
+  Define all non-functional requirements.
+  Include: Performance, Availability, Security, Scalability.
+  Format as NFR-001, NFR-002, etc. with measurable targets.
+
+  ## Output Location
+  Write results to: bmad/outputs/agent-nfr.md
+  """
+)
+
+agent3 = Task(
+  subagent_type="general-purpose",
+  run_in_background=True,
+  prompt="""
+  ## Task: Write Epics and User Stories section
+
+  ## Context
+  Read: bmad/context/prd-context.md
+
+  ## Objective
+  Break down requirements into epics and stories.
+  Include story point estimates.
+  Format: Epic 1: Product CRUD (21 pts)
+           - STORY-001: Product model (3)
+
+  ## Output Location
+  Write results to: bmad/outputs/agent-epics.md
+  """
+)
+
+agent4 = Task(
+  subagent_type="general-purpose",
+  run_in_background=True,
+  prompt="""
+  ## Task: Write Dependencies and Constraints section
+
+  ## Context
+  Read: bmad/context/prd-context.md
+
+  ## Objective
+  Identify technical dependencies, integration points,
+  timeline constraints, and risk factors.
+
+  ## Output Location
+  Write results to: bmad/outputs/agent-dependencies.md
+  """
+)
+```
+
+#### Step 3: Parallel Execution
+
+All 4 agents run simultaneously, each in its own 200K token context:
+
+```
+┌─────────────────────┐
+│  Main Agent         │
+│  (Product Manager)  │
+└──────────┬──────────┘
+           │ Writes context file
+           │
+    ┌──────▼──────────────┐
+    │ bmad/context/       │
+    │ prd-context.md      │
+    └──────┬──────────────┘
+           │ Read by all agents
+           │
+    ┌──────┴──────┬────────────┬────────────┐
+    ▼             ▼            ▼            ▼
+┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
+│ Agent 1  │ │ Agent 2  │ │ Agent 3  │ │ Agent 4  │
+│ FR       │ │ NFR      │ │ Epics    │ │ Deps     │
+│ 200K ctx │ │ 200K ctx │ │ 200K ctx │ │ 200K ctx │
+└────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘
+     │            │            │            │
+     ▼            ▼            ▼            ▼
+┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
+│agent-fr  │ │agent-nfr │ │agent-    │ │agent-    │
+│.md       │ │.md       │ │epics.md  │ │deps.md   │
+└──────────┘ └──────────┘ └──────────┘ └──────────┘
+```
+
+Each agent works independently, exploring the codebase, researching best practices, and writing their section.
+
+#### Step 4: Main Agent Synthesizes Results
+
+Once all agents complete, the main agent reads their outputs:
+
+```
+Claude: Collecting results from parallel agents...
+
+Reading: bmad/outputs/agent-fr.md
+Reading: bmad/outputs/agent-nfr.md
+Reading: bmad/outputs/agent-epics.md
+Reading: bmad/outputs/agent-dependencies.md
+
+Synthesizing into final PRD...
+```
+
+The main agent:
+1. Reviews all sections for consistency
+2. Resolves any conflicts (e.g., NFR contradicting FR)
+3. Ensures story points align with project level
+4. Formats into final document structure
+5. Adds executive summary and metadata
+
+```
+Writing final PRD to: docs/prd.md
+
+PRD complete!
+- 5 Functional Requirements
+- 3 Non-Functional Requirements
+- 5 Epics with 23 User Stories
+- 73 total story points
+```
+
+### Coordination Flow Summary
+
+```
+1. Context → Write shared context to bmad/context/
+2. Launch → Start N parallel agents in background
+3. Execute → Each agent works in 200K token context
+4. Output → Agents write to bmad/outputs/agent-{n}.md
+5. Synthesize → Main agent combines results
+6. Deliver → Final document written to docs/
+```
+
+### Why This Matters
+
+**Without subagents (sequential):**
+- Token budget: 200K for entire PRD
+- Time: 15-20 minutes sequential writing
+- Depth: Limited by single context
+
+**With subagents (parallel):**
+- Token budget: 200K × 4 = 800K total
+- Time: 5-7 minutes (parallel execution)
+- Depth: Each section gets full 200K context
+
+**Result:** 3-4x faster execution with 4x the effective token budget.
+
+### Parallel Research Example
+
+The Business Analyst uses the same pattern for comprehensive research:
+
+```
+User: /research
+
+Claude (Business Analyst): What type of research?
+> Comprehensive analysis for our API product
+
+Launching 4 parallel research agents...
+```
+
+The main agent coordinates:
+
+```
+Agent 1: Market Research
+- Market size and growth trends
+- Target customer segments
+- Pricing benchmarks
+→ Output: bmad/outputs/research-market.md
+
+Agent 2: Competitive Analysis
+- Direct competitors (features, pricing)
+- Indirect competitors (alternatives)
+- Competitive advantages/gaps
+→ Output: bmad/outputs/research-competitive.md
+
+Agent 3: Technical Research
+- Technology stack options
+- Architecture patterns
+- Integration requirements
+→ Output: bmad/outputs/research-technical.md
+
+Agent 4: User Research
+- User personas
+- Pain points and needs
+- Jobs-to-be-Done analysis
+→ Output: bmad/outputs/research-users.md
+```
+
+All 4 agents run in parallel, each conducting deep research in their domain. The main agent then synthesizes findings into `docs/research-report.md`.
 
 ---
 
@@ -207,6 +475,14 @@ User: /architecture
 Claude: Designing system architecture...
 
 Loading: docs/prd.md
+
+Using parallel subagents for component design...
+- Agent 1: API Gateway and authentication layer
+- Agent 2: Product service and business logic
+- Agent 3: Data layer (PostgreSQL, schemas)
+- Agent 4: Search infrastructure (Elasticsearch)
+
+Synthesizing architecture document...
 
 ## System Overview
 
@@ -706,6 +982,14 @@ User: /create-ux-design
 
 Claude: Creating UX designs for FitTrack...
 
+Launching parallel UX design agents...
+- Agent 1: User personas and research
+- Agent 2: Onboarding and authentication flows
+- Agent 3: Core workout flows (log, track, complete)
+- Agent 4: Social and progress flows
+
+Synthesizing UX design document...
+
 ## User Personas
 
 ### Primary: Active Alex
@@ -1050,7 +1334,32 @@ User: /workflow-init
 
 ## Common Patterns
 
-### Pattern 1: Research → Build
+### Pattern 1: Subagent Coordination
+
+The foundation of BMAD's efficiency - decompose, parallelize, synthesize:
+
+```
+Step 1: Context Preparation
+Main agent writes shared context to bmad/context/
+
+Step 2: Parallel Execution
+Launch N independent subagents (each with 200K tokens)
+- Task tool with run_in_background: true
+- Each agent reads context, executes subtask
+- Each agent writes output to bmad/outputs/
+
+Step 3: Synthesis
+Main agent collects all outputs
+Resolves conflicts, ensures consistency
+Writes final deliverable to docs/
+
+Benefits:
+- N × 200K effective token budget
+- 3-4x faster execution
+- Deeper analysis per subtask
+```
+
+### Pattern 2: Research → Build
 
 ```
 /brainstorm        # Explore ideas
@@ -1060,7 +1369,7 @@ User: /workflow-init
 ...
 ```
 
-### Pattern 2: Quick Prototype
+### Pattern 3: Quick Prototype
 
 ```
 /workflow-init     # Level 1
@@ -1068,7 +1377,7 @@ User: /workflow-init
 /dev-story STORY-001
 ```
 
-### Pattern 3: Enterprise Project
+### Pattern 4: Enterprise Project
 
 ```
 /workflow-init     # Level 3-4
@@ -1080,7 +1389,7 @@ User: /workflow-init
 /sprint-planning   # Multiple sprints
 ```
 
-### Pattern 4: Custom Workflow
+### Pattern 5: Custom Workflow
 
 ```
 /create-agent      # Security Engineer

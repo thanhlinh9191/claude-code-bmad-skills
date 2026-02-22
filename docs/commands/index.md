@@ -13,7 +13,15 @@ BMAD provides 15 slash commands for managing your agile development workflow. Ea
 
 ## How Commands Work
 
-Commands are markdown files in `~/.claude/commands/bmad/` that define interactive workflows. When you type a command like `/prd`, Claude Code loads the command definition and guides you through the process.
+Commands trigger **BMAD skills** - specialized AI agents that execute structured workflows. Skills are located in `~/.claude/skills/bmad-skills/` and may leverage **parallel subagents** for complex tasks.
+
+**How it works:**
+1. You trigger a command (e.g., `/prd`)
+2. Claude activates the corresponding skill (e.g., `product-manager`)
+3. The skill may launch parallel subagents to process different sections simultaneously
+4. Results are synthesized and presented as a unified document
+
+**Parallel Execution:** Skills like Product Manager, System Architect, and Creative Intelligence decompose work into independent subtasks executed by parallel subagents, each with up to 1M tokens of context on Claude Sonnet 4.6 / Opus 4.6.
 
 **Quick tip:** Type `/workflow-status` anytime to see which command to run next.
 
@@ -209,6 +217,8 @@ Create a comprehensive product brief that defines the problem space, target audi
 
 **Prerequisite:** `/workflow-init`
 
+**Subagent Execution:** This command may use parallel subagents for document sections (Executive Summary, Problem Statement, Market Analysis, Solution Overview) when creating comprehensive product briefs.
+
 #### Example
 
 ```
@@ -308,6 +318,8 @@ Create a Product Requirements Document with detailed functional requirements, us
 **Output:** `docs/prd.md`
 
 **Prerequisite:** `docs/product-brief.md`
+
+**Subagent Execution:** This command uses parallel subagents to generate different PRD sections simultaneously (Functional Requirements, Non-Functional Requirements, Epics & Stories, Dependencies), significantly speeding up document creation.
 
 #### Example
 
@@ -794,6 +806,8 @@ Design the system architecture including components, data models, APIs, and tech
 
 **Prerequisite:** `docs/prd.md`
 
+**Subagent Execution:** This command uses parallel subagents to design major system components independently (Auth Service, Data Layer, API Layer, Frontend), ensuring comprehensive coverage of all architectural concerns.
+
 #### Example
 
 See the [System Architect skill documentation](../skills/#system-architect) for a complete architecture example.
@@ -899,6 +913,8 @@ Break down the PRD into stories and plan sprint iterations.
 **Output:** `docs/sprint-status.yaml`, `docs/stories/*.md`
 
 **Prerequisites:** `docs/prd.md`, `docs/architecture.md`
+
+**Subagent Execution:** This command uses parallel subagents to break down epics independently, with each agent creating detailed user stories for its assigned epic. This parallelization handles large backlogs efficiently.
 
 #### Example
 
@@ -1010,6 +1026,8 @@ Implement a user story end-to-end with code and tests.
 
 **Output:** Code files, updated story status
 
+**Subagent Execution:** For complex stories spanning multiple components, this command can use parallel subagents to implement backend, frontend, and test code simultaneously.
+
 #### Example
 
 See the [Developer skill documentation](../skills/#developer) for a complete implementation example.
@@ -1020,11 +1038,11 @@ See the [Developer skill documentation](../skills/#developer) for a complete imp
 
 <h3 id="create-agent">/create-agent</h3>
 
-Create a custom BMAD agent for specialized domains.
+Create a custom BMAD skill for specialized domains.
 
-**When to use:** Need capabilities not covered by default agents
+**When to use:** Need capabilities not covered by default skills
 
-**Output:** `~/.claude/skills/bmad/custom/{agent}/SKILL.md`
+**Output:** `~/.claude/skills/bmad-skills/custom-{skill-name}/SKILL.md`
 
 #### Example
 
@@ -1034,11 +1052,11 @@ See the [Builder skill documentation](../skills/#builder) for a complete example
 
 <h3 id="create-workflow">/create-workflow</h3>
 
-Create a custom workflow command.
+Create a custom workflow skill.
 
 **When to use:** Need a specialized workflow for your process
 
-**Output:** `~/.claude/commands/bmad/custom/{command}.md`
+**Output:** Custom skill in `~/.claude/skills/bmad-skills/` directory
 
 #### Example
 
@@ -1129,9 +1147,9 @@ Perform security review of code and generate findings report.
 **Fix:** Use parameterized queries
 ```
 
-Saved to: ~/.claude/commands/bmad/custom/security-review.md
+Saved to: ~/.claude/skills/bmad-skills/security-reviewer/SKILL.md
 
-Restart Claude Code to load the new command.
+Restart Claude Code to load the new skill.
 ```
 
 ---
@@ -1145,6 +1163,8 @@ Run a structured brainstorming session using multiple techniques.
 **When to use:** Starting a project, stuck on a problem, exploring ideas
 
 **Output:** `docs/brainstorm-{topic}.md`
+
+**Subagent Execution:** When using multiple brainstorming techniques, this command can launch parallel subagents to apply different frameworks simultaneously (SCAMPER, Mind Mapping, Six Thinking Hats), providing diverse perspectives.
 
 #### Example
 
@@ -1165,6 +1185,8 @@ Conduct comprehensive research on a topic.
 - Competitive analysis
 - Technical research
 - User research
+
+**Subagent Execution:** This command uses parallel subagents to conduct different research types simultaneously (market trends, competitive landscape, technical feasibility, user needs), gathering comprehensive insights quickly.
 
 #### Example
 

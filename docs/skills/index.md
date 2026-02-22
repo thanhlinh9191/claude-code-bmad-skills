@@ -1,1433 +1,765 @@
 ---
 layout: default
 title: "Skills"
-description: "Complete reference for all 9 BMAD skills (AI agents). Learn how each skill works and when to use them in your development workflow."
-keywords: "BMAD skills, Claude Code agents, AI development agents, business analyst AI, product manager AI, architect AI"
+description: "Complete reference for all 9 BMAD skills implementing the Anthropic specification. Learn when to use each skill and how they orchestrate AI-driven development."
+keywords: "BMAD skills, Claude Code agents, AI development agents, business analyst AI, product manager AI, architect AI, Anthropic skill specification"
 ---
 
-# Skills Reference
+# BMAD Skills Reference
 
-BMAD provides 9 specialized skills (AI agents) that handle different aspects of the agile development workflow. Each skill has specific responsibilities, commands, and outputs.
-
----
-
-## How Skills Work in Claude Code
-
-Skills are markdown files that define agent behavior. When you use a BMAD command, Claude Code loads the appropriate skill to handle your request.
-
-**Location:** `~/.claude/skills/bmad/`
-
-**Structure:**
-```
-bmad/
-├── core/
-│   └── bmad-master/SKILL.md
-├── bmm/
-│   ├── analyst/SKILL.md
-│   ├── pm/SKILL.md
-│   ├── architect/SKILL.md
-│   ├── scrum-master/SKILL.md
-│   ├── developer/SKILL.md
-│   └── ux-designer/SKILL.md
-├── bmb/
-│   └── builder/SKILL.md
-└── cis/
-    └── creative-intelligence/SKILL.md
-```
+BMAD provides **9 specialized skills** implementing the [Anthropic Claude Code skill specification](https://docs.anthropic.com/claude/docs/skills). Each skill is a self-contained AI agent with specific responsibilities, trigger phrases, and workflows that guide you through structured development phases.
 
 ---
 
-## Skill Modules
+## Skills Overview
 
-### Core Module
-Essential orchestration skill that routes workflows.
+All skills are located in a **flat directory structure** at `bmad-skills/` with no nested modules:
 
-| Skill | Purpose |
-|-------|---------|
-| [BMad Master](#bmad-master) | Workflow orchestration and routing |
+```
+bmad-skills/
+├── bmad-orchestrator/    # Workflow orchestration and routing
+├── business-analyst/     # Phase 1: Analysis and discovery
+├── product-manager/      # Phase 2: Requirements and planning
+├── system-architect/     # Phase 3: Architecture and design
+├── scrum-master/         # Phase 4: Sprint planning
+├── developer/            # Phase 4: Implementation
+├── ux-designer/          # Cross-phase: UX design
+├── creative-intelligence/# Cross-phase: Research and brainstorming
+└── builder/              # Meta: Create custom skills
+```
 
-### BMM Module (Business Method Module)
-Main development workflow skills.
+### Skill Structure
 
-| Skill | Phase | Purpose |
-|-------|-------|---------|
-| [Business Analyst](#business-analyst) | Phase 1 | Requirements discovery |
-| [Product Manager](#product-manager) | Phase 2 | PRD and planning |
-| [UX Designer](#ux-designer) | Phase 2-3 | Interface design |
-| [System Architect](#system-architect) | Phase 3 | Technical architecture |
-| [Scrum Master](#scrum-master) | Phase 4 | Sprint planning |
-| [Developer](#developer) | Phase 4 | Implementation |
+Each skill follows the [Anthropic specification](https://docs.anthropic.com/claude/docs/skills) with:
 
-### BMB Module (Builder Module)
-Customization and extension skill.
+```
+skill-name/
+├── SKILL.md           # Required: YAML frontmatter + instructions (<5K tokens)
+├── REFERENCE.md       # Optional: Detailed reference material
+├── scripts/           # Optional: Executable utilities (.sh, .py)
+├── templates/         # Optional: Document templates (.template.md)
+└── resources/         # Optional: Reference data (.md)
+```
 
-| Skill | Purpose |
-|-------|---------|
-| [Builder](#builder) | Create custom agents and workflows |
+**SKILL.md Format:**
+```yaml
+---
+name: skill-name           # lowercase, hyphens, max 64 chars
+description: |             # max 1024 chars, include trigger words
+  What it does AND when to use it.
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, TodoWrite
+---
 
-### CIS Module (Creative Intelligence System)
-Research and ideation skill.
+# Skill Name
 
-| Skill | Purpose |
-|-------|---------|
-| [Creative Intelligence](#creative-intelligence) | Brainstorming and research |
+[Markdown content under 5K tokens]
+```
 
 ---
 
-## Core Module
+## Skills by BMAD Phase
 
-<h3 id="bmad-master">BMad Master</h3>
+### Phase 1: Analysis
 
-**Skill ID:** `bmad-core-master`
-**Module:** Core
-**Phase:** All phases
+| Skill | Purpose | Trigger Keywords |
+|-------|---------|------------------|
+| [Business Analyst](#business-analyst) | Product discovery, requirements analysis, product briefs | product brief, brainstorm, research, discovery, requirements, problem analysis, user needs, competitive analysis |
+| [Creative Intelligence](#creative-intelligence) | Research and structured brainstorming | brainstorm, ideate, research, SCAMPER, SWOT, mind map, creative, explore ideas, market research |
 
-The BMad Master is the entry point and orchestrator for all BMAD workflows. It initializes projects and routes users to appropriate phase-specific skills.
+### Phase 2: Planning
 
-#### Responsibilities
-- Initialize BMAD in new projects
-- Determine project scope and level
-- Route to appropriate workflow commands
-- Track overall project status
-- Provide workflow recommendations
+| Skill | Purpose | Trigger Keywords |
+|-------|---------|------------------|
+| [Product Manager](#product-manager) | PRDs, tech specs, feature prioritization | PRD, requirements, tech spec, features, prioritization, epics, user stories, acceptance criteria |
+| [UX Designer](#ux-designer) | User experience, wireframes, accessibility | UX design, wireframe, user flow, accessibility, WCAG, mobile-first, responsive, UI design |
 
-#### Commands
-- `/workflow-init` - Initialize BMAD in your project
-- `/workflow-status` - Check project progress and get recommendations
+### Phase 3: Solutioning
 
-#### Example Usage
+| Skill | Purpose | Trigger Keywords |
+|-------|---------|------------------|
+| [System Architect](#system-architect) | System architecture, tech stack, NFRs | architecture, system design, tech stack, components, scalability, security, API design, data model |
+| [UX Designer](#ux-designer) | Design system, component specs | design system, component design, interaction design |
 
-```
-User: /workflow-init
+### Phase 4: Implementation
 
-BMad Master: Welcome to BMAD! I'll help initialize your project.
+| Skill | Purpose | Trigger Keywords |
+|-------|---------|------------------|
+| [Scrum Master](#scrum-master) | Sprint planning, story breakdown | sprint planning, user story, story points, velocity, backlog, sprint, epic breakdown, estimation |
+| [Developer](#developer) | Code implementation, testing | implement story, dev story, code, implement, build feature, fix bug, write tests, code review, refactor |
 
-Let me gather some information about your project...
+### Cross-Phase Skills
 
-Project name?
-> E-commerce Platform
+| Skill | Purpose | Trigger Keywords |
+|-------|---------|------------------|
+| [BMAD Orchestrator](#bmad-orchestrator) | Workflow routing and status tracking | workflow-init, workflow-status, BMAD setup, project status, next steps |
+| [Builder](#builder) | Create custom skills and workflows | create agent, create workflow, custom skill, extend BMAD, new template, customize |
 
-Project type?
-> web-app
+---
 
-Estimated complexity?
-Based on your description (user auth, product catalog, cart, checkout),
-I recommend Level 3 (Complex integration, 12-40 stories).
+## Skill Details
 
-Accept Level 3?
-> Yes
+<h3 id="bmad-orchestrator">BMAD Orchestrator</h3>
 
-Created bmad/config.yaml
-Recommended first step: /product-brief
+**Name:** `bmad-orchestrator`
+**Phase:** All phases (orchestration)
+**Allowed Tools:** Read, Write, Edit, Bash, Glob, Grep, TodoWrite
 
-Your project is initialized! I'll route you to the appropriate
-skills as you progress through each phase.
-```
+#### Purpose
+Core orchestrator for the BMAD Method, managing workflows, tracking status, and routing users through structured development phases.
 
 #### When to Use
-- Starting any new BMAD project
-- Checking what to do next
-- Understanding project status
+- Initialize BMAD in a project (`/workflow-init`)
+- Check project progress (`/workflow-status`)
+- Determine next recommended workflow
+- Set up project structure and configuration
+
+#### Key Workflows
+- `/workflow-init` or `/init` - Initialize BMAD directory structure and configuration
+- `/workflow-status` or `/status` - Check progress and get recommendations
+
+#### Project Levels
+- **Level 0:** Single atomic change (1 story)
+- **Level 1:** Small feature (1-10 stories)
+- **Level 2:** Medium feature set (5-15 stories)
+- **Level 3:** Complex integration (12-40 stories)
+- **Level 4:** Enterprise expansion (40+ stories)
+
+#### Directory Structure Created
+```
+bmad/
+├── config.yaml              # Project configuration
+├── context/                 # Shared context for subagents
+└── outputs/                 # Subagent outputs
+
+docs/
+├── bmm-workflow-status.yaml # Workflow progress tracking
+└── stories/                 # User story documents
+```
+
+#### Subagent Strategy
+**Workflow Status Check:** 3-4 parallel agents check config, workflow status, artifacts, and generate recommendations.
+
+**Project Initialization:** 3 parallel agents create directory structure, config files, and workflow status.
 
 ---
-
-## BMM Module
 
 <h3 id="business-analyst">Business Analyst</h3>
 
-**Skill ID:** `bmad-bmm-analyst`
-**Module:** BMM
+**Name:** `business-analyst`
 **Phase:** Phase 1 - Analysis
+**Allowed Tools:** Read, Write, Edit, Bash, Glob, Grep, TodoWrite, WebSearch, WebFetch
 
-The Business Analyst handles product discovery and initial requirements analysis. This skill helps you understand the problem space before designing solutions.
-
-#### Responsibilities
-- Create comprehensive product briefs
-- Conduct market and competitive research
-- Discover user needs and pain points
-- Facilitate stakeholder interviews
-- Set foundation for planning phase
-
-#### Commands
-- `/product-brief` - Create comprehensive product brief
-- `/brainstorm-project` - Ideation for new projects
-- `/research` - Market/competitive/technical research
-- `/game-brief` - Specialized brief for game projects
-
-#### Example Usage
-
-```
-User: /product-brief
-
-Business Analyst: I'll help you create a comprehensive product brief.
-
-## Executive Summary
-What problem does this product solve? (2-3 sentences)
-> Small businesses struggle to manage inventory across multiple
-> sales channels. They need a unified system that syncs stock
-> levels in real-time.
-
-## Target Audience
-Who are your primary users?
-> Small retail business owners with 1-5 locations, selling both
-> in-store and online (Shopify, Amazon, eBay)
-
-## Problem Statement
-Let me structure the core problems:
-
-1. **Overselling:** Stock sells on one channel but isn't updated on others
-2. **Manual updates:** Hours spent updating inventory across platforms
-3. **No visibility:** Can't see total inventory at a glance
-4. **Lost sales:** Items show out-of-stock when available elsewhere
-
-Is this accurate?
-> Yes, also add difficulty with purchase orders
-
-## Solution Overview
-Based on these problems, your solution should:
-- Real-time sync across all connected channels
-- Unified dashboard for all inventory
-- Automated low-stock alerts
-- Purchase order management
-
-## Success Metrics
-How will you measure success?
-> - Reduce overselling incidents by 90%
-> - Save 10+ hours/week on manual updates
-> - 95% inventory accuracy
-
-## Business Objectives
-What are your business goals?
-> - MRR of $50k in 12 months
-> - 500 paying customers
-> - Integrations with top 5 sales platforms
-
-Saving product brief to: docs/product-brief.md
-```
-
-#### Output
-A comprehensive product brief document including:
-- Executive summary
-- Problem statement
-- Target audience
-- Solution overview
-- Business objectives
-- Success metrics
-- Competitive analysis
-- Constraints and risks
+#### Purpose
+Product discovery and requirements analysis specialist. Conducts stakeholder interviews, market research, problem discovery, and creates product briefs.
 
 #### When to Use
-- Starting a new product or major feature
-- Need to align stakeholders on goals
-- Before creating detailed requirements
-- Level 2+ projects (optional for Level 0-1)
+- Create a product brief for a new product or feature
+- Conduct product discovery and problem analysis
+- Perform market and competitive research
+- Interview stakeholders about needs and pain points
+- Define success metrics and goals
+
+#### Key Workflows
+- `/product-brief` - Create comprehensive product brief through structured discovery
+- `/brainstorm-project` - Facilitate structured brainstorming session
+- `/research` - Conduct market/competitive/technical research
+
+#### Discovery Frameworks
+- **5 Whys** - Root cause analysis
+- **Jobs-to-be-Done** - Focus on user accomplishments
+- **SMART Goals** - Specific, Measurable, Achievable, Relevant, Time-bound
+
+#### Output Quality Standards
+- Clear and unambiguous
+- Specific, measurable criteria
+- Grounded in research and evidence
+- Defines success metrics
+- Identifies risks and dependencies
+
+#### Subagent Strategy
+**Product Discovery Research:** 4 parallel agents conduct market research, competitive analysis, technical feasibility, and user needs analysis.
+
+**Product Brief Generation:** 3 parallel agents generate problem definition, solution approach, and success metrics sections.
+
+#### Integration
+**Hands off to:** Product Manager (provides product brief for PRD creation)
 
 ---
 
 <h3 id="product-manager">Product Manager</h3>
 
-**Skill ID:** `bmad-bmm-pm`
-**Module:** BMM
+**Name:** `product-manager`
 **Phase:** Phase 2 - Planning
+**Allowed Tools:** Read, Write, Edit, Bash, Glob, Grep, TodoWrite, AskUserQuestion
 
-The Product Manager transforms the product brief into detailed, actionable requirements. This skill creates PRDs with user stories, acceptance criteria, and prioritization.
+#### Purpose
+Product requirements and planning specialist. Creates PRDs and tech specs with functional/non-functional requirements, prioritizes features, and breaks down epics into user stories.
 
-#### Responsibilities
-- Create Product Requirements Documents (PRDs)
-- Define Functional Requirements (FRs)
-- Define Non-Functional Requirements (NFRs)
-- Break down epics into stories
-- Prioritize features (MoSCoW, RICE, Kano)
-- Right-size planning to project level
+#### When to Use
+- Create Product Requirements Documents (PRDs) for Level 2+ projects
+- Create Technical Specifications for Level 0-1 projects
+- Define functional requirements (FRs) and non-functional requirements (NFRs)
+- Prioritize features using MoSCoW, RICE, or Kano frameworks
+- Break down requirements into epics and user stories
 
-#### Commands
+#### Key Workflows
 - `/prd` - Create Product Requirements Document
-- `/tech-spec` - Lightweight spec for Level 0-1 projects
+- `/tech-spec` - Create lightweight spec for Level 0-1 projects
 - `/validate-prd` - Validate PRD completeness
-- `/validate-tech-spec` - Validate tech spec completeness
 
-#### Example Usage
+#### Requirements Types
 
+**Functional Requirements (FRs):**
 ```
-User: /prd
-
-Product Manager: I'll create a PRD based on your product brief.
-
-Loading: docs/product-brief.md
-
-## Functional Requirements
-
-Based on your inventory management solution, here are the core FRs:
-
-### FR-001: Multi-channel Connection
-Users can connect multiple sales channels (Shopify, Amazon, eBay, WooCommerce)
-and authenticate via OAuth.
-
-### FR-002: Real-time Sync
-Inventory changes on any channel are reflected on all others within 60 seconds.
-
-### FR-003: Unified Dashboard
-Central view showing:
-- Total inventory across all channels
-- Per-channel breakdown
-- Low stock alerts
-- Recent sync activity
-
-### FR-004: Product Mapping
-Map products across channels (same product may have different SKUs)
-
-...
-
-## Non-Functional Requirements
-
-### NFR-001: Performance
-- Sync latency < 60 seconds
-- Dashboard load time < 2 seconds
-- Support 10,000 SKUs per account
-
-### NFR-002: Reliability
-- 99.9% uptime SLA
-- Automatic retry on channel API failures
-- Conflict resolution for simultaneous updates
-
-### NFR-003: Security
-- SOC 2 compliance
-- Encrypted API credentials
-- Audit logging
-
-## Epics and Stories
-
-### Epic 1: Channel Integration
-- STORY-001: Shopify OAuth integration (5 pts)
-- STORY-002: Amazon SP-API integration (8 pts)
-- STORY-003: eBay integration (5 pts)
-- STORY-004: WooCommerce integration (5 pts)
-
-### Epic 2: Sync Engine
-- STORY-005: Inventory sync service (8 pts)
-- STORY-006: Conflict resolution (5 pts)
-- STORY-007: Retry and error handling (3 pts)
-
-...
-
-## Prioritization (MoSCoW)
-
-**Must Have (MVP):**
-- FR-001, FR-002, FR-003
-
-**Should Have:**
-- FR-004, FR-005
-
-**Could Have:**
-- FR-006, FR-007
-
-**Won't Have (this release):**
-- FR-008
-
-Saving PRD to: docs/prd.md
+FR-001: MUST - User can create account with email and password
+Acceptance Criteria:
+- Email validation follows RFC 5322 standard
+- Password minimum 8 characters with mixed case and numbers
+- Confirmation email sent within 30 seconds
 ```
 
-#### Output
-A complete PRD including:
-- Functional requirements with acceptance criteria
-- Non-functional requirements
-- Epics and user stories with points
-- Prioritization
-- Success metrics
-- Out of scope items
-
-#### When to Use
-- Level 2+ projects
-- After product brief is complete
-- Before architecture design
-- Need detailed requirements for development
-
----
-
-<h3 id="ux-designer">UX Designer</h3>
-
-**Skill ID:** `bmad-bmm-ux-designer`
-**Module:** BMM
-**Phase:** Phase 2-3 - Planning and Solutioning
-
-The UX Designer creates user interface designs, wireframes, and user flows based on requirements. This skill ensures WCAG accessibility compliance and mobile-first design.
-
-#### Responsibilities
-- Create user interface designs
-- Design wireframes and mockups
-- Map user flows and journeys
-- Ensure WCAG accessibility compliance
-- Document design systems
-- Collaborate with PM and Developer
-
-#### Commands
-- `/create-ux-design` - Complete UX design workflow
-
-#### Example Usage
-
+**Non-Functional Requirements (NFRs):**
 ```
-User: /create-ux-design
-
-UX Designer: I'll create UX designs for your inventory management system.
-
-Loading: docs/prd.md
-
-## User Flows
-
-### Flow 1: Onboarding
-1. Sign up → 2. Connect first channel → 3. Import products →
-4. Review mappings → 5. Dashboard
-
-### Flow 2: Daily Usage
-1. Login → 2. Dashboard overview → 3. Low stock alerts →
-4. Create purchase order → 5. Receive inventory
-
-### Flow 3: Sync Issue Resolution
-1. Alert notification → 2. View conflict → 3. Choose resolution →
-4. Confirm → 5. Verify sync
-
-## Wireframes
-
-### Dashboard (Main View)
-```
-┌─────────────────────────────────────────┐
-│  [Logo]  Search...   [Alerts] [Profile] │
-├─────────────────────────────────────────┤
-│ ┌─────────┐ ┌─────────┐ ┌─────────────┐ │
-│ │ Total   │ │ Low     │ │ Sync Status │ │
-│ │ 12,450  │ │ Stock   │ │ ✓ All Good  │ │
-│ │ items   │ │ 23      │ │             │ │
-│ └─────────┘ └─────────┘ └─────────────┘ │
-│                                         │
-│ Recent Activity                         │
-│ ├─ Shopify: +50 Widget A                │
-│ ├─ Amazon: -3 Gadget B                  │
-│ └─ eBay: -1 Thing C                     │
-│                                         │
-│ Quick Actions                           │
-│ [+ Add Product] [Create PO] [Sync Now]  │
-└─────────────────────────────────────────┘
+NFR-001: MUST - API endpoints respond within 200ms for 95th percentile
+NFR-002: MUST - System supports 10,000 concurrent users
+NFR-003: SHOULD - Application achieves WCAG 2.1 AA compliance
 ```
 
-## Design System
+#### Prioritization Frameworks
 
-### Colors
-- Primary: #2563EB (Blue 600)
-- Success: #16A34A (Green 600)
-- Warning: #D97706 (Amber 600)
-- Error: #DC2626 (Red 600)
-- Neutral: #6B7280 (Gray 500)
+| Framework | Best For | Formula |
+|-----------|----------|---------|
+| **MoSCoW** | Time-boxed projects, MVP definition | Must/Should/Could/Won't Have |
+| **RICE** | Data-driven prioritization | (Reach × Impact × Confidence) / Effort |
+| **Kano** | Customer satisfaction analysis | Basic/Performance/Excitement features |
 
-### Typography
-- Headings: Inter, 600 weight
-- Body: Inter, 400 weight
-- Monospace: JetBrains Mono (for SKUs)
+#### Subagent Strategy
+**PRD Generation:** 4 parallel agents generate Functional Requirements, Non-Functional Requirements, Epics & Stories, and Dependencies sections.
 
-### Spacing Scale
-4px, 8px, 12px, 16px, 24px, 32px, 48px, 64px
+**Epic Prioritization:** N parallel agents (one per epic) calculate RICE scores in parallel.
 
-## Accessibility (WCAG 2.1 AA)
+**Tech Spec Generation:** 3 parallel agents create requirements, technical approach, and testing sections.
 
-- [ ] Color contrast ratio ≥ 4.5:1
-- [ ] All images have alt text
-- [ ] Forms have visible labels
-- [ ] Keyboard navigable
-- [ ] Focus indicators visible
-- [ ] Error messages descriptive
-- [ ] Touch targets ≥ 44px
-
-## Component Library
-
-1. **Button** - Primary, Secondary, Danger, Ghost
-2. **Input** - Text, Number, Select, Multiselect
-3. **Card** - Metric, Product, Alert
-4. **Table** - Sortable, Filterable, Paginated
-5. **Modal** - Confirmation, Form, Alert
-6. **Toast** - Success, Error, Warning, Info
-
-Saving UX design to: docs/ux-design.md
-```
-
-#### Output
-A comprehensive UX design document including:
-- User flows
-- Wireframes (ASCII or description)
-- Design system (colors, typography, spacing)
-- Component library specifications
-- Accessibility checklist
-- Responsive breakpoints
-
-#### When to Use
-- Level 2+ projects with user interfaces
-- After PRD but before or during architecture
-- Need to visualize user experience
-- Ensure accessibility compliance
+#### Integration
+**Receives from:** Business Analyst (product brief)
+**Provides to:** System Architect (PRD for architecture), Scrum Master (epics for backlog)
 
 ---
 
 <h3 id="system-architect">System Architect</h3>
 
-**Skill ID:** `bmad-bmm-architect`
-**Module:** BMM
+**Name:** `system-architect`
 **Phase:** Phase 3 - Solutioning
+**Allowed Tools:** Read, Write, Edit, Bash, Glob, Grep, TodoWrite, WebSearch
 
-The System Architect designs the technical architecture based on requirements. This skill defines system components, data models, APIs, and technology choices.
+#### Purpose
+Designs system architecture, selects tech stacks, defines components and interfaces, and addresses non-functional requirements systematically.
 
-#### Responsibilities
-- Design system architecture
-- Select and justify technology stack
-- Define data models and schemas
-- Specify API contracts
-- Address non-functional requirements
-- Document architectural decisions
+#### When to Use
+- Design system architecture for a new project
+- Select technology stacks with justification
+- Define system components and their interactions
+- Address non-functional requirements (NFRs) systematically
+- Create data models and API specifications
 
-#### Commands
-- `/architecture` - Create system architecture
+#### Key Workflows
+- `/architecture` - Create system architecture document
 - `/solutioning-gate-check` - Validate architecture against requirements
 - `/validate-architecture` - Check architecture completeness
 
-#### Example Usage
+#### Architectural Patterns
 
-~~~~
-User: /architecture
+| Pattern | Project Level | Use Case |
+|---------|--------------|----------|
+| **Monolith** | Level 0-1 | Simple, single deployable unit |
+| **Modular Monolith** | Level 2 | Organized modules with clear boundaries |
+| **Microservices** | Level 3-4 | Independent services with APIs |
+| **Serverless** | Specific | Event-driven functions |
 
-System Architect: I'll design the system architecture for your inventory management platform.
+#### NFR Mapping
 
-Loading: docs/prd.md
+| NFR Category | Architecture Decisions |
+|--------------|----------------------|
+| **Performance** | Caching strategy, CDN, database indexing, load balancing |
+| **Scalability** | Horizontal scaling, stateless design, database sharding |
+| **Security** | Auth/authz model, encryption (transit/rest), secret management |
+| **Reliability** | Redundancy, failover, circuit breakers, retry logic |
+| **Maintainability** | Module boundaries, testing strategy, documentation |
 
-## System Overview
+#### Architecture Document Sections
+1. System Overview
+2. Architecture Pattern
+3. Component Design
+4. Data Model
+5. API Specifications
+6. NFR Mapping
+7. Technology Stack
+8. Trade-off Analysis
+9. Deployment Architecture
+10. Future Considerations
 
-The system follows a microservices architecture with event-driven sync:
+#### Subagent Strategy
+**Requirements Analysis:** 2 parallel agents analyze Functional Requirements and Non-Functional Requirements.
 
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Web App   │────▶│   API GW    │────▶│   Auth      │
-└─────────────┘     └──────┬──────┘     └─────────────┘
-                           │
-         ┌─────────────────┼─────────────────┐
-         ▼                 ▼                 ▼
-┌─────────────┐   ┌─────────────┐   ┌─────────────┐
-│  Inventory  │   │   Sync      │   │  Channels   │
-│   Service   │   │   Engine    │   │   Service   │
-└──────┬──────┘   └──────┬──────┘   └──────┬──────┘
-       │                 │                 │
-       └────────┬────────┴────────┬────────┘
-                ▼                 ▼
-         ┌───────────┐     ┌───────────┐
-         │ PostgreSQL│     │   Redis   │
-         └───────────┘     │   + MQ    │
-                          └───────────┘
-```
+**Component Design:** N parallel agents (one per major component) design Auth, Data, API, UI, and domain components in parallel.
 
-## Component Architecture
+**NFR Mapping:** 6 parallel agents map Performance, Scalability, Security, Reliability, Maintainability, and Availability NFRs to architectural decisions.
 
-### 1. API Gateway
-- **Technology:** Kong or AWS API Gateway
-- **Responsibilities:**
-  - Request routing
-  - Rate limiting
-  - Authentication passthrough
-  - Request/response logging
-
-### 2. Auth Service
-- **Technology:** Node.js + Passport
-- **Responsibilities:**
-  - User registration/login
-  - JWT token issuance
-  - OAuth credential storage
-  - Role-based access
-
-### 3. Inventory Service
-- **Technology:** Node.js + Express
-- **Responsibilities:**
-  - Product CRUD
-  - Stock level management
-  - Multi-location support
-  - Inventory history
-
-### 4. Sync Engine
-- **Technology:** Node.js + Bull Queue
-- **Responsibilities:**
-  - Event processing
-  - Channel API calls
-  - Conflict resolution
-  - Retry logic
-
-### 5. Channels Service
-- **Technology:** Node.js + per-channel adapters
-- **Responsibilities:**
-  - Channel connection management
-  - API translation layer
-  - Webhook handling
-  - Rate limit management
-
-## Data Models
-
-### Product
-```sql
-CREATE TABLE products (
-  id UUID PRIMARY KEY,
-  tenant_id UUID NOT NULL,
-  sku VARCHAR(100) NOT NULL,
-  name VARCHAR(255) NOT NULL,
-  description TEXT,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW(),
-  UNIQUE(tenant_id, sku)
-);
-```
-
-### Inventory
-```sql
-CREATE TABLE inventory (
-  id UUID PRIMARY KEY,
-  product_id UUID REFERENCES products(id),
-  location_id UUID REFERENCES locations(id),
-  quantity INTEGER NOT NULL DEFAULT 0,
-  reserved INTEGER NOT NULL DEFAULT 0,
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-### Channel Mapping
-```sql
-CREATE TABLE channel_mappings (
-  id UUID PRIMARY KEY,
-  product_id UUID REFERENCES products(id),
-  channel_id UUID REFERENCES channels(id),
-  external_id VARCHAR(255) NOT NULL,
-  external_sku VARCHAR(100),
-  UNIQUE(channel_id, external_id)
-);
-```
-
-## API Specifications
-
-### Inventory Endpoints
-
-#### GET /api/v1/inventory
-List all inventory with filtering.
-
-**Query Parameters:**
-- `sku` - Filter by SKU
-- `low_stock` - Boolean, show only low stock
-- `channel_id` - Filter by channel
-- `page`, `limit` - Pagination
-
-**Response:**
-```json
-{
-  "data": [
-    {
-      "product_id": "uuid",
-      "sku": "WIDGET-001",
-      "name": "Blue Widget",
-      "total_quantity": 150,
-      "locations": [...],
-      "channels": [...]
-    }
-  ],
-  "pagination": {...}
-}
-```
-
-## Technology Stack Justification
-
-| Component | Choice | Justification |
-|-----------|--------|---------------|
-| Runtime | Node.js | Team expertise, async I/O for API calls |
-| Database | PostgreSQL | ACID compliance, JSON support, scalability |
-| Queue | Redis + Bull | Fast, reliable, good Node.js support |
-| Cache | Redis | Same instance as queue, fast reads |
-| API Gateway | Kong | Open source, plugin ecosystem |
-
-## NFR Mapping
-
-| NFR | Solution |
-|-----|----------|
-| Sync < 60s | Event-driven architecture, parallel processing |
-| 99.9% uptime | Multi-AZ deployment, health checks, auto-scaling |
-| 10k SKUs | Database indexing, query optimization, caching |
-| Security | JWT + OAuth, encrypted secrets, audit logs |
-
-Saving architecture to: docs/architecture.md
-~~~~
-
-#### Output
-A comprehensive architecture document including:
-- System overview diagram
-- Component architecture
-- Data models and schemas
-- API specifications
-- Technology stack with justifications
-- NFR mapping
-- Deployment strategy
-- Scalability considerations
-
-#### When to Use
-- Level 2+ projects
-- After PRD (and optionally UX design)
-- Before sprint planning
-- Need technical blueprint for implementation
+#### Integration
+**Receives from:** Product Manager (PRD or tech-spec)
+**Provides to:** Scrum Master (architecture for sprint planning), Developer (technical blueprint)
 
 ---
 
 <h3 id="scrum-master">Scrum Master</h3>
 
-**Skill ID:** `bmad-bmm-scrum-master`
-**Module:** BMM
+**Name:** `scrum-master`
 **Phase:** Phase 4 - Implementation Planning
+**Allowed Tools:** Read, Write, Edit, Bash, Glob, Grep, TodoWrite
 
-The Scrum Master handles sprint planning and story management. This skill breaks down epics into stories, estimates complexity, and plans iterations.
-
-#### Responsibilities
-- Break epics into stories
-- Estimate story complexity (Fibonacci)
-- Plan sprint iterations
-- Track sprint progress
-- Refine and size stories
-- Calculate velocity
-
-#### Commands
-- `/sprint-planning` - Plan sprint iterations
-- `/create-story` - Create individual story
-- `/sprint-status` - Check sprint progress
-- `/velocity-report` - View velocity metrics
-
-#### Example Usage
-
-```
-User: /sprint-planning
-
-Scrum Master: I'll help plan sprints for your inventory management system.
-
-Loading: docs/prd.md, docs/architecture.md
-
-## Story Breakdown
-
-### Epic 1: Authentication & Authorization
-
-| ID | Story | Points | Priority |
-|----|-------|--------|----------|
-| STORY-001 | User registration and login | 3 | Must |
-| STORY-002 | JWT token management | 2 | Must |
-| STORY-003 | OAuth credential storage | 3 | Must |
-| STORY-004 | Role-based permissions | 5 | Should |
-
-### Epic 2: Channel Integration
-
-| ID | Story | Points | Priority |
-|----|-------|--------|----------|
-| STORY-005 | Channel connection framework | 5 | Must |
-| STORY-006 | Shopify adapter | 5 | Must |
-| STORY-007 | Amazon adapter | 8 | Must |
-| STORY-008 | eBay adapter | 5 | Should |
-| STORY-009 | WooCommerce adapter | 5 | Should |
-
-### Epic 3: Sync Engine
-
-| ID | Story | Points | Priority |
-|----|-------|--------|----------|
-| STORY-010 | Event queue setup | 3 | Must |
-| STORY-011 | Inventory sync processor | 8 | Must |
-| STORY-012 | Conflict resolution | 5 | Must |
-| STORY-013 | Retry and error handling | 3 | Must |
-
-### Epic 4: Inventory Management
-
-| ID | Story | Points | Priority |
-|----|-------|--------|----------|
-| STORY-014 | Product CRUD | 5 | Must |
-| STORY-015 | Stock level management | 5 | Must |
-| STORY-016 | Multi-location support | 8 | Should |
-| STORY-017 | Inventory history | 5 | Should |
-
-### Epic 5: Dashboard & UI
-
-| ID | Story | Points | Priority |
-|----|-------|--------|----------|
-| STORY-018 | Dashboard layout | 5 | Must |
-| STORY-019 | Inventory list view | 5 | Must |
-| STORY-020 | Low stock alerts | 3 | Must |
-| STORY-021 | Sync status display | 3 | Must |
-
-## Sprint Planning
-
-**Team velocity assumption:** 25 points/sprint (adjust based on actual)
-
-### Sprint 1: Foundation (25 pts)
-Focus: Auth + Core inventory
-
-- STORY-001: User registration/login (3)
-- STORY-002: JWT management (2)
-- STORY-003: OAuth storage (3)
-- STORY-010: Event queue setup (3)
-- STORY-014: Product CRUD (5)
-- STORY-015: Stock management (5)
-- STORY-018: Dashboard layout (5)
-
-**Goal:** Users can sign up, add products, and see dashboard
-
-### Sprint 2: First Channel (24 pts)
-Focus: Shopify integration
-
-- STORY-005: Channel framework (5)
-- STORY-006: Shopify adapter (5)
-- STORY-011: Sync processor (8)
-- STORY-019: Inventory list (5)
-- Buffer for Sprint 1 carryover (1)
-
-**Goal:** Full Shopify sync working
-
-### Sprint 3: Reliability (24 pts)
-Focus: Error handling + more channels
-
-- STORY-012: Conflict resolution (5)
-- STORY-013: Retry handling (3)
-- STORY-007: Amazon adapter (8)
-- STORY-020: Low stock alerts (3)
-- STORY-021: Sync status (3)
-- Buffer (2)
-
-**Goal:** Reliable sync with Shopify and Amazon
-
-### Sprint 4: Expansion (23 pts)
-Focus: Additional features
-
-- STORY-004: Role-based permissions (5)
-- STORY-008: eBay adapter (5)
-- STORY-009: WooCommerce adapter (5)
-- STORY-016: Multi-location (8)
-
-**Goal:** All major channels supported
-
-### Sprint 5: Polish (13 pts)
-Focus: Nice-to-haves and refinement
-
-- STORY-017: Inventory history (5)
-- Bug fixes and polish (8)
-
-**Goal:** Production-ready MVP
-
-## Summary
-
-- **Total stories:** 21
-- **Total points:** 109
-- **Estimated sprints:** 5
-- **MVP ready:** After Sprint 3 (Must-haves complete)
-
-Accept this sprint plan?
-> Yes
-
-Saving to: docs/sprint-status.yaml
-Creating story files in: docs/stories/
-
-Sprint plan complete!
-```
+#### Purpose
+Sprint planning and agile workflow specialist. Breaks epics into user stories, estimates complexity using story points, and plans sprint iterations.
 
 #### When to Use
-- After architecture is complete
-- Before implementation begins
-- Need to break down work into iterations
-- Planning team capacity
+- Break epics into detailed user stories
+- Estimate story complexity using story points
+- Plan sprint iterations based on team velocity
+- Track sprint progress with burndown metrics
+
+#### Key Workflows
+- `/sprint-planning` - Plan sprint iterations from epics and requirements
+- `/create-story` - Create detailed user story with acceptance criteria
+- `/sprint-status` - Check current sprint progress
+- `/velocity-report` - Calculate team velocity metrics
+
+#### Story Sizing (Fibonacci Scale)
+
+| Points | Complexity | Time | Example |
+|--------|-----------|------|---------|
+| **1** | Trivial | 1-2 hours | Config change, text update |
+| **2** | Simple | 2-4 hours | Basic CRUD, simple component |
+| **3** | Moderate | 4-8 hours | Complex component, business logic |
+| **5** | Complex | 1-2 days | Feature with multiple components |
+| **8** | Very Complex | 2-3 days | Full feature (frontend + backend) |
+| **13** | Epic-sized | 3-5 days | **Break this down!** |
+
+**Rule:** Stories exceeding 8 points must be broken into smaller stories.
+
+#### Sprint Planning by Level
+
+| Level | Stories | Sprints | Approach |
+|-------|---------|---------|----------|
+| **Level 0** | 1 | None | Single story, no sprint planning |
+| **Level 1** | 1-10 | 1 sprint | Estimate all, prioritize by dependency |
+| **Level 2** | 5-15 | 1-2 sprints | Group by epic, define sprint goals |
+| **Level 3-4** | 12+ | 2-4+ sprints | Full velocity-based planning, release planning |
+
+#### Story Structure
+```
+As a [user type],
+I want [capability],
+So that [benefit].
+
+Acceptance Criteria:
+- Criterion 1 (specific, testable)
+- Criterion 2 (specific, testable)
+- Criterion 3 (specific, testable)
+
+Estimate: 5 points
+Dependencies: STORY-001, Architecture doc
+```
+
+#### Subagent Strategy
+**Epic Breakdown:** N parallel agents (one per epic) break down each epic into user stories with estimates.
+
+**Sprint Planning:** 3 parallel agents analyze dependencies, calculate velocity, and generate sprint goals.
+
+**Story Refinement:** N parallel agents refine independent stories with full acceptance criteria in parallel.
+
+#### Integration
+**Receives from:** Product Manager (PRD with epics), System Architect (architecture document)
+**Provides to:** Developer (refined, estimated stories for implementation)
 
 ---
 
 <h3 id="developer">Developer</h3>
 
-**Skill ID:** `bmad-bmm-developer`
-**Module:** BMM
+**Name:** `developer`
 **Phase:** Phase 4 - Implementation
+**Allowed Tools:** Read, Write, Edit, Bash, Glob, Grep, TodoWrite
 
-The Developer implements stories from the sprint plan. This skill writes clean, tested code that meets acceptance criteria.
+#### Purpose
+Implements user stories, writes clean tested code, and follows best practices. Translates requirements into working, maintainable software.
 
-#### Responsibilities
-- Implement stories from requirements
-- Write clean, maintainable code
-- Create comprehensive tests (≥80% coverage)
-- Complete acceptance criteria
-- Document implementation
-- Follow best practices
+#### When to Use
+- Implement user stories from requirements
+- Write clean, maintainable, well-tested code
+- Achieve 80%+ test coverage
+- Validate acceptance criteria
+- Fix bugs and refactor code
 
-#### Commands
-- `/dev-story {STORY-ID}` - Implement a story
-- `/code-review {file}` - Review code
+#### Key Workflows
+- `/dev-story {STORY-ID}` - Implement a specific user story
+- `/code-review {file}` - Review code against standards
 - `/fix-tests` - Fix failing tests
 - `/refactor {component}` - Refactor code
 
-#### Example Usage
+#### Implementation Approach
+1. **Understand Requirements** - Read story acceptance criteria
+2. **Plan Implementation** - Break into tasks with TodoWrite
+3. **Execute Incrementally** - Test-driven development (TDD)
+4. **Validate Quality** - Run tests, check coverage, verify acceptance criteria
 
-~~~~
-User: /dev-story STORY-014
+#### Code Quality Standards
 
-Developer: I'll implement STORY-014: Product CRUD.
+**Clean Code:**
+- Descriptive names (no single-letter variables)
+- Functions under 50 lines with single responsibility
+- DRY principle - extract common logic
+- Explicit error handling
+- Comments explain "why" not "what"
 
-Loading: docs/stories/STORY-014.md
+**Testing:**
+- Unit tests for individual functions/components
+- Integration tests for component interactions
+- E2E tests for critical user flows
+- 80%+ coverage on new code
+- Test edge cases and error conditions
 
-## Story Details
+**Git Commits:**
+- Small, focused commits
+- Format: `feat(component): description` or `fix(component): description`
+- Commit frequently, push regularly
 
-**Title:** Product CRUD Operations
-**Points:** 5
-**Epic:** Inventory Management
+#### Validation Checklist
+Before completing any story:
+- [ ] All test suites pass (unit, integration, e2e)
+- [ ] Coverage meets 80% threshold
+- [ ] All acceptance criteria verified
+- [ ] Linting and formatting pass
+- [ ] Manual testing for user-facing features
+- [ ] Self code review completed
 
-### Acceptance Criteria
-- [ ] Create product with name, SKU, description
-- [ ] Read product by ID or SKU
-- [ ] Update product fields
-- [ ] Delete product (soft delete)
-- [ ] Validate unique SKU per tenant
-- [ ] API endpoints follow REST conventions
-- [ ] Unit tests with >80% coverage
+#### Subagent Strategy
+**Story Implementation (Independent Stories):** N parallel agents implement independent stories with tests in parallel.
 
-### Implementation Plan
+**Test Writing:** N parallel agents write tests for different components/modules in parallel.
 
-1. Create Product model and migration
-2. Create Product service with business logic
-3. Create Product controller with endpoints
-4. Add validation middleware
-5. Write unit tests
-6. Write integration tests
+**Implementation Task Breakdown:** 4 parallel agents implement backend, business logic, frontend, and tests in coordinated sequence.
 
-### Implementation
+**Code Review:** N parallel agents review multiple PRs in parallel.
 
-#### 1. Product Model
-
-Creating: src/models/product.js
-```javascript
-const { DataTypes } = require('sequelize');
-
-module.exports = (sequelize) => {
-  const Product = sequelize.define('Product', {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true
-    },
-    tenantId: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      field: 'tenant_id'
-    },
-    sku: {
-      type: DataTypes.STRING(100),
-      allowNull: false
-    },
-    name: {
-      type: DataTypes.STRING(255),
-      allowNull: false
-    },
-    description: {
-      type: DataTypes.TEXT
-    },
-    deletedAt: {
-      type: DataTypes.DATE,
-      field: 'deleted_at'
-    }
-  }, {
-    tableName: 'products',
-    paranoid: true, // soft delete
-    indexes: [
-      {
-        unique: true,
-        fields: ['tenant_id', 'sku']
-      }
-    ]
-  });
-
-  return Product;
-};
-```
-
-#### 2. Product Service
-
-Creating: src/services/productService.js
-```javascript
-class ProductService {
-  constructor(productModel) {
-    this.Product = productModel;
-  }
-
-  async create(tenantId, data) {
-    return this.Product.create({
-      tenantId,
-      ...data
-    });
-  }
-
-  async findById(tenantId, id) {
-    return this.Product.findOne({
-      where: { id, tenantId }
-    });
-  }
-
-  async findBySku(tenantId, sku) {
-    return this.Product.findOne({
-      where: { sku, tenantId }
-    });
-  }
-
-  async update(tenantId, id, data) {
-    const product = await this.findById(tenantId, id);
-    if (!product) return null;
-    return product.update(data);
-  }
-
-  async delete(tenantId, id) {
-    const product = await this.findById(tenantId, id);
-    if (!product) return false;
-    await product.destroy();
-    return true;
-  }
-
-  async list(tenantId, { page = 1, limit = 20, search } = {}) {
-    const where = { tenantId };
-    if (search) {
-      where[Op.or] = [
-        { name: { [Op.iLike]: `%${search}%` } },
-        { sku: { [Op.iLike]: `%${search}%` } }
-      ];
-    }
-
-    return this.Product.findAndCountAll({
-      where,
-      limit,
-      offset: (page - 1) * limit,
-      order: [['createdAt', 'DESC']]
-    });
-  }
-}
-```
-
-#### 3. Product Controller
-
-Creating: src/controllers/productController.js
-```javascript
-const express = require('express');
-const router = express.Router();
-const { validateProduct } = require('../middleware/validation');
-
-router.post('/', validateProduct, async (req, res, next) => {
-  try {
-    const product = await req.productService.create(
-      req.tenantId,
-      req.body
-    );
-    res.status(201).json(product);
-  } catch (error) {
-    if (error.name === 'SequelizeUniqueConstraintError') {
-      return res.status(409).json({
-        error: 'SKU already exists'
-      });
-    }
-    next(error);
-  }
-});
-
-// ... GET, PUT, DELETE endpoints
-
-module.exports = router;
-```
-
-#### 4. Tests
-
-Creating: tests/unit/productService.test.js
-```javascript
-describe('ProductService', () => {
-  describe('create', () => {
-    it('should create a product with valid data', async () => {
-      const data = {
-        sku: 'TEST-001',
-        name: 'Test Product',
-        description: 'A test product'
-      };
-
-      const product = await productService.create(tenantId, data);
-
-      expect(product.sku).toBe(data.sku);
-      expect(product.name).toBe(data.name);
-      expect(product.tenantId).toBe(tenantId);
-    });
-
-    it('should reject duplicate SKU for same tenant', async () => {
-      // ... test implementation
-    });
-  });
-
-  // ... more tests
-});
-```
-
-### Verification
-
-Running tests:
-```bash
-npm test -- --coverage
-```
-
-Coverage report:
-- productService.js: 95%
-- productController.js: 88%
-- Overall: 91%
-
-All acceptance criteria met ✓
-
-### Story Complete
-
-Updated: docs/stories/STORY-014.md
-Status: Complete
-
-Next: /dev-story STORY-015
-~~~~
-
-#### When to Use
-- During implementation phase
-- Have a story ready to implement
-- Need to write actual code
-- Want test coverage verification
+#### Integration
+**Receives from:** Scrum Master (user stories with acceptance criteria)
+**Provides:** Working, tested code that meets requirements
 
 ---
 
-## BMB Module
+<h3 id="ux-designer">UX Designer</h3>
+
+**Name:** `ux-designer`
+**Phase:** Phase 2/3 - Planning and Solutioning
+**Allowed Tools:** Read, Write, Edit, Bash, Glob, Grep, TodoWrite, AskUserQuestion
+
+#### Purpose
+Designs user experiences, creates wireframes, defines user flows, and ensures accessibility compliance (WCAG 2.1 AA).
+
+#### When to Use
+- Create user interface designs
+- Design wireframes and mockups (ASCII or structured descriptions)
+- Define user flows and journeys
+- Ensure WCAG 2.1 AA accessibility compliance
+- Document design systems and patterns
+
+#### Key Workflows
+- `/create-ux-design` - Complete UX design workflow
+
+#### Standard Workflow
+1. **Understand Requirements** - Read PRD, extract user stories
+2. **Create User Flows** - Map user journeys and navigation paths
+3. **Design Wireframes** - Create screen layouts (ASCII or descriptions)
+4. **Ensure Accessibility** - WCAG 2.1 AA compliance
+5. **Document Design** - Design system, components, responsive behavior
+6. **Validate Design** - Confirm meets requirements
+
+#### Accessibility Requirements (WCAG 2.1 AA)
+- Color contrast ≥ 4.5:1 (text), ≥ 3:1 (UI components)
+- All functionality available via keyboard
+- Visible focus indicators
+- Labels for all form inputs
+- Alt text for all images
+- Semantic HTML structure
+- ARIA labels where needed
+
+#### Responsive Design (Mobile-First)
+
+| Breakpoint | Layout | Navigation | Touch Targets |
+|------------|--------|------------|---------------|
+| **Mobile** (320-767px) | Single column, stacked cards | Hamburger menu | ≥ 44px |
+| **Tablet** (768-1023px) | 2-column grid | Expanded navigation | Larger |
+| **Desktop** (1024px+) | 3+ column grid | Full navigation bar | Hover states |
+
+#### Design Handoff Deliverables
+1. Wireframes (all screens and states)
+2. User flows (diagrams with decision points)
+3. Component specifications (size, behavior, states)
+4. Interaction patterns (hover, focus, active, disabled)
+5. Accessibility annotations (ARIA, alt text, keyboard nav)
+6. Responsive behavior notes (breakpoints, layout changes)
+7. Design tokens (colors, typography, spacing)
+
+#### Subagent Strategy
+**Screen/Flow Design:** N parallel agents (one per major screen or flow) design home, registration, dashboard, and settings screens in parallel.
+
+**User Flow Design:** N parallel agents design onboarding, checkout, account management, and error flows in parallel.
+
+**Accessibility Validation:** 4 parallel agents validate visual, keyboard, ARIA, and responsive accessibility.
+
+**Component Specification:** N parallel agents specify buttons, forms, navigation, cards, and modal components in parallel.
+
+#### Integration
+**Receives from:** Business Analyst (user research), Product Manager (requirements)
+**Provides to:** System Architect (UX constraints), Developer (design for implementation)
+
+---
+
+<h3 id="creative-intelligence">Creative Intelligence</h3>
+
+**Name:** `creative-intelligence`
+**Phase:** Cross-phase (any phase)
+**Allowed Tools:** Read, Write, Edit, Bash, Glob, Grep, TodoWrite, WebSearch, WebFetch
+
+#### Purpose
+Facilitates structured brainstorming sessions, conducts comprehensive research, and generates creative solutions using proven frameworks.
+
+#### When to Use
+- Structured brainstorming for ideation
+- Market, competitive, technical, or user research
+- Creative problem-solving across all project phases
+- Generate innovative solutions to complex problems
+- Explore alternatives and possibilities
+
+#### Key Workflows
+- `/brainstorm` - Structured brainstorming session using proven techniques
+- `/research` - Comprehensive research (market, competitive, technical, user)
+
+#### Brainstorming Techniques
+
+| Technique | Best For | Time | Output |
+|-----------|----------|------|--------|
+| **5 Whys** | Root cause analysis | 10-15 min | Cause chain |
+| **SCAMPER** | Feature ideation | 20-30 min | Creative variations |
+| **Mind Mapping** | Idea organization | 15-20 min | Visual hierarchy |
+| **Reverse Brainstorming** | Risk identification | 15-20 min | Failure scenarios |
+| **Six Thinking Hats** | Multi-perspective analysis | 30-45 min | Balanced view |
+| **Starbursting** | Question exploration | 20-30 min | Question tree |
+| **SWOT Analysis** | Strategic planning | 30-45 min | SWOT matrix |
+
+#### SCAMPER Framework
+- **Substitute:** What can be replaced or changed?
+- **Combine:** What features can be merged?
+- **Adapt:** What can be adjusted to fit different contexts?
+- **Modify:** What can be magnified, minimized, or altered?
+- **Put to other uses:** What new purposes can features serve?
+- **Eliminate:** What can be removed to simplify?
+- **Reverse/Rearrange:** What can be flipped or reorganized?
+
+#### Research Types
+1. **Market Research** - Market size, trends, customer segments, growth opportunities
+2. **Competitive Research** - Competitor profiling, feature comparison, gap analysis
+3. **Technical Research** - Technology evaluation, best practices, implementation approaches
+4. **User Research** - User needs, pain points, behavior patterns, workflows
+
+#### Cross-Phase Applicability
+
+| Phase | Use Cases |
+|-------|-----------|
+| **Phase 1: Analysis** | Market research, competitive landscape, problem exploration (5 Whys), user research |
+| **Phase 2: Planning** | Feature brainstorming (SCAMPER), SWOT analysis, risk identification, prioritization insights |
+| **Phase 3: Solutioning** | Architecture alternatives, design pattern research, Mind Mapping, technical research |
+| **Phase 4: Implementation** | Technical solution research, best practices, problem-solving, documentation |
+
+#### Subagent Strategy
+**Multi-Technique Brainstorming:** 3-6 parallel agents apply different brainstorming techniques (SCAMPER, Mind Mapping, Reverse Brainstorming, Six Thinking Hats) to the same problem.
+
+**Comprehensive Research:** 4 parallel agents conduct market, competitive, technical, and user research in parallel.
+
+**Problem Exploration:** 3 parallel agents apply 5 Whys, Starbursting, and stakeholder perspective analysis.
+
+**Solution Generation:** 4 parallel agents generate SCAMPER variations, research existing solutions, identify constraints, and create evaluation criteria.
+
+#### Integration
+Works across all phases with all skills to provide research-driven insights and creative solutions.
+
+---
 
 <h3 id="builder">Builder</h3>
 
-**Skill ID:** `bmad-bmb-builder`
-**Module:** BMB
-**Phase:** N/A (Meta-skill)
+**Name:** `builder`
+**Phase:** Meta (skill creation)
+**Allowed Tools:** Read, Write, Edit, Bash, Glob, Grep, TodoWrite
 
-The Builder creates custom agents, workflows, and templates. Use this when you need specialized capabilities not covered by default BMAD skills.
+#### Purpose
+Creates custom agents, workflows, and templates for specialized domains. Extends BMAD functionality with domain-specific components.
 
-#### Responsibilities
-- Create custom agents for specific domains
-- Generate custom workflow commands
-- Build new templates
-- Customize BMAD for your needs
+#### When to Use
+- Create custom agents for specific domains (QA, DevOps, Security)
+- Generate workflow commands following BMAD patterns
+- Create domain-specific document templates
+- Customize BMAD for specific use cases
 
-#### Commands
+#### Key Workflows
 - `/create-agent` - Create custom BMAD agent
 - `/create-workflow` - Create custom workflow command
 - `/create-template` - Create output template
 - `/customize-bmad` - Modify BMAD configuration
 
-#### Example: Creating a QA Engineer Agent
+#### Available Scripts
+- `scripts/validate-skill.sh` - Validate SKILL.md YAML frontmatter
+- `scripts/scaffold-skill.sh` - Create skill directory structure
 
-```
-User: /create-agent
+#### YAML Frontmatter Requirements
 
-Builder: I'll help you create a custom BMAD agent.
-
-What type of agent?
-> QA Engineer
-
-What are its main responsibilities?
-> - Test plan creation
-> - Test case design
-> - Bug report writing
-> - Coverage analysis
-> - Regression testing
-
-What commands should it support?
-> /create-test-plan
-> /generate-test-cases
-> /bug-report
-> /coverage-analysis
-
-Creating agent...
-
-Saved to: ~/.claude/skills/bmad/custom/qa-engineer/SKILL.md
-
-## Generated Agent
-
-```markdown
-# QA Engineer
-
-## Skill ID
-bmad-custom-qa-engineer
-
-## Module
-custom
-
-## Purpose
-Quality assurance and testing for BMAD projects
-
-## Responsibilities
-- Create comprehensive test plans from requirements
-- Design test cases with clear steps and expected results
-- Write detailed bug reports
-- Analyze test coverage and identify gaps
-- Plan regression testing strategies
-
-## Commands
-- `/create-test-plan` - Generate test plan from PRD
-- `/generate-test-cases` - Create test cases for features
-- `/bug-report` - Write standardized bug report
-- `/coverage-analysis` - Analyze test coverage
-
-## Workflow Integration
-- Operates in Phase 4 alongside Developer
-- Takes PRD and Architecture as inputs
-- Outputs test documentation to docs/tests/
+Every SKILL.md must have:
+```yaml
+---
+name: skill-name           # Required: lowercase, hyphens
+description: |             # Required: include trigger keywords
+  What it does AND when to use it.
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, TodoWrite
+---
 ```
 
-Restart Claude Code to load the new agent.
-```
+#### Token Optimization
+Keep SKILL.md under 5K tokens:
+- Use references to REFERENCE.md for detailed patterns
+- Link to resources for comprehensive guidance
+- Avoid embedding large code blocks
+- Use progressive disclosure (overview → details → examples)
 
-#### When to Use
-- Need domain-specific agents (Security, DevOps, Data Science)
-- Want custom workflows for your process
-- Building reusable templates
-- Extending BMAD for your team
+#### Subagent Strategy
+**Skill Creation:** 4 parallel agents create SKILL.md, helper scripts, templates, and reference resources.
+
+**Multi-Skill Creation:** N parallel agents create multiple related skills (QA, DevOps, Security engineers) in parallel.
+
+**Template Creation:** N parallel agents create test plan, deployment runbook, security assessment templates in parallel.
+
+**Skill Validation:** 4 parallel agents validate YAML frontmatter, token count, script functionality, and content completeness.
+
+#### Example Domain Customizations
+- **QA Engineering:** QA Engineer skill, /create-test-plan workflow, test plan template
+- **DevOps:** DevOps Engineer skill, /deploy workflow, deployment runbook template
+- **Security:** Security Engineer skill, /security-audit workflow, security assessment template
+- **Data Science:** Data Scientist skill, /data-analysis workflow, analysis report template
+
+#### Integration
+Creates new skills that integrate seamlessly with existing BMAD workflows and patterns.
 
 ---
 
-## CIS Module
+## Subagent Architecture Patterns
 
-<h3 id="creative-intelligence">Creative Intelligence</h3>
+All BMAD skills leverage **parallel subagents** to maximize the 200K token context window per agent. Each skill can decompose complex workflows into independent subtasks executed by parallel subagents.
 
-**Skill ID:** `bmad-cis-creative-intelligence`
-**Module:** CIS
-**Phase:** Any phase
+### Core Principle
+**Never do sequentially what can be done in parallel.** Decompose work into independent subtasks, execute in parallel, then synthesize results.
 
-The Creative Intelligence skill facilitates brainstorming and research. Use this when you need creative problem-solving or comprehensive research.
+### Common Patterns
 
-#### Responsibilities
-- Facilitate structured brainstorming
-- Conduct market/competitive/technical research
-- Generate creative solutions
-- Refine ideas through multiple techniques
-- Document findings
+| Pattern | Use Case | Example |
+|---------|----------|---------|
+| **Fan-Out Research** | Gathering information from multiple sources | Business Analyst: 4 parallel agents research market, competitors, tech, users |
+| **Parallel Section Generation** | Creating multi-section documents | Product Manager: 4 parallel agents generate FR, NFR, Epics, Dependencies sections |
+| **Component Parallel Design** | Designing system components | System Architect: N agents design Auth, Data, API, UI components in parallel |
+| **Story Parallel Implementation** | Implementing independent stories | Developer: N agents implement independent stories with tests in parallel |
 
-#### Commands
-- `/brainstorm` - Structured brainstorming session
-- `/research` - Comprehensive research
+### Coordination Strategy
+1. **Write shared context** to `bmad/context/` for parallel agents
+2. **Launch parallel agents** with Task tool using `run_in_background: true`
+3. **Each agent writes output** to `bmad/outputs/`
+4. **Main context synthesizes** results from all agents
 
-#### Brainstorming Techniques
-
-1. **5 Whys** - Root cause analysis
-2. **SCAMPER** - Creative variations
-3. **Mind Mapping** - Visual organization
-4. **Reverse Brainstorming** - Failure analysis
-5. **Six Thinking Hats** - Multiple perspectives
-6. **Starbursting** - Question-based exploration
-7. **Brainwriting** - Silent idea generation
-8. **SWOT Analysis** - Strategic assessment
-
-#### Example: Brainstorming Session
-
-```
-User: /brainstorm
-
-Creative Intelligence: What topic would you like to brainstorm?
-> How to improve user onboarding for our inventory app
-
-Which techniques would you like to use? (or 'all')
-> 5 Whys, SCAMPER, Six Thinking Hats
-
-## 5 Whys Analysis
-
-**Problem:** Users abandon onboarding before connecting their first channel
-
-1. **Why?** The process takes too long (15+ minutes)
-2. **Why?** Users must configure too many settings upfront
-3. **Why?** We require all fields before proceeding
-4. **Why?** The system needs complete data to function
-5. **Why?** We haven't implemented progressive disclosure
-
-**Root Cause:** Requiring complete configuration prevents users from experiencing value quickly
-
-**Solution Direction:** Implement progressive onboarding with minimal required fields
-
-## SCAMPER Analysis
-
-**Substitute**
-- Replace manual setup with templates (Shopify store, Amazon seller)
-- Substitute text instructions with video walkthroughs
-
-**Combine**
-- Combine channel connection + product import into one step
-- Merge similar configuration screens
-
-**Adapt**
-- Adapt successful onboarding from Slack (guided bot)
-- Adapt e-commerce setup wizards
-
-**Modify**
-- Simplify to 3 steps: Sign up → Connect → Dashboard
-- Reduce required fields to just email and channel
-
-**Put to other uses**
-- Use onboarding flow for re-engagement
-- Turn into shareable team invitation flow
-
-**Eliminate**
-- Remove location setup (default to single location)
-- Eliminate manual product entry (auto-import only)
-
-**Reverse**
-- Start with dashboard, then prompt to connect
-- Show sample data first, then replace with real
-
-## Six Thinking Hats
-
-**White Hat (Facts)**
-- Current completion rate: 35%
-- Average time: 18 minutes
-- Drop-off point: Channel authentication
-
-**Red Hat (Emotions)**
-- Users feel overwhelmed
-- Frustration at OAuth complexity
-- Excitement when they see dashboard
-
-**Black Hat (Risks)**
-- Simplified onboarding may miss critical settings
-- Users may get stuck later
-- Support burden could increase
-
-**Yellow Hat (Benefits)**
-- Higher completion rate
-- Faster time-to-value
-- Better first impression
-
-**Green Hat (Creativity)**
-- "Connect in 60 seconds" challenge
-- Gamified progress
-- Skip to dashboard with sample data
-
-**Blue Hat (Process)**
-- A/B test new flow
-- Monitor completion and day-7 retention
-- Iterate based on support tickets
-
-## Recommendations
-
-1. **Quick Win:** Reduce required fields to email + password only
-2. **Medium Term:** Implement "Connect in 3 clicks" with smart defaults
-3. **Future:** Progressive onboarding that reveals features over first week
-
-Saving to: docs/brainstorm-onboarding.md
-```
-
-#### Example: Research Session
-
-```
-User: /research
-
-Creative Intelligence: What type of research?
-1. Market research
-2. Competitive analysis
-3. Technical research
-4. User research
-> 2
-
-What's the focus of your competitive analysis?
-> Inventory management software for small businesses
-
-## Competitive Analysis: Inventory Management Software
-
-### Market Overview
-The small business inventory management market is valued at $3.2B (2024) with 12% YoY growth. Key trends include multi-channel integration, AI-powered forecasting, and mobile-first design.
-
-### Competitor Profiles
-
-#### 1. Cin7
-- **Target:** Mid-market ($500-5000/mo)
-- **Strengths:** Comprehensive features, 500+ integrations
-- **Weaknesses:** Complex, expensive, steep learning curve
-- **Pricing:** $349-999/mo
-
-#### 2. Ordoro
-- **Target:** E-commerce sellers ($50-200/mo)
-- **Strengths:** Shipping integration, dropshipping support
-- **Weaknesses:** Limited POS integration, basic reporting
-- **Pricing:** $59-199/mo
-
-#### 3. Sortly
-- **Target:** Small teams ($29-150/mo)
-- **Strengths:** Visual inventory, mobile app, QR codes
-- **Weaknesses:** Limited channel integration
-- **Pricing:** $29-149/mo
-
-#### 4. inFlow
-- **Target:** Product businesses ($79-219/mo)
-- **Strengths:** Manufacturing support, B2B portal
-- **Weaknesses:** Dated UI, limited real-time sync
-- **Pricing:** $79-219/mo
-
-### Feature Comparison
-
-| Feature | Cin7 | Ordoro | Sortly | inFlow | Us |
-|---------|------|--------|--------|--------|-----|
-| Shopify | ✓ | ✓ | - | ✓ | ✓ |
-| Amazon | ✓ | ✓ | - | ✓ | ✓ |
-| Real-time sync | ✓ | - | - | - | ✓ |
-| Mobile app | ✓ | - | ✓ | ✓ | Planned |
-| AI forecasting | ✓ | - | - | - | Planned |
-
-### Opportunity Analysis
-
-**Gaps we can fill:**
-1. Real-time sync at lower price point
-2. Better UX than Cin7
-3. More integrations than Sortly
-4. Modern UI vs. inFlow
-
-**Positioning:**
-"Cin7 features at Ordoro prices"
-
-### Recommendations
-
-1. **Differentiate on speed:** Lead with "60-second sync" messaging
-2. **Target switchers:** Focus on Ordoro users needing real-time
-3. **Pricing:** $49-149/mo range to compete with Ordoro/Sortly
-4. **Launch integrations:** Prioritize Shopify, Amazon, eBay, WooCommerce
-
-Saving to: docs/research-competitive-analysis.md
-```
-
-#### When to Use
-- Starting a new project (use before product brief)
-- Stuck on a problem
-- Need market intelligence
-- Exploring technical options
-- Any phase where creativity helps
+See [Subagent Patterns](../subagent-patterns) for detailed patterns and examples.
 
 ---
 
-## Using Skills Together
+## Skill Integration and Workflow
 
-Skills work together across the workflow. Here's how they connect:
+Skills work together across the BMAD workflow:
 
 ```
-Business Analyst → Product Manager → System Architect → Scrum Master → Developer
-     │                    │                 │                │            │
-product-brief.md → prd.md → architecture.md → sprint-status.yaml → code
+Phase 1: Analysis
+  business-analyst → product-brief.md
+  creative-intelligence → research-report.md
+
+Phase 2: Planning
+  product-manager → prd.md or tech-spec.md
+  ux-designer → ux-design.md
+
+Phase 3: Solutioning
+  system-architect → architecture.md
+  ux-designer → design-system.md
+
+Phase 4: Implementation
+  scrum-master → sprint-plan.md, stories/
+  developer → working code + tests
+
+Cross-Phase:
+  bmad-orchestrator → workflow routing and status
+  creative-intelligence → research and brainstorming
+  builder → custom skills and workflows
 ```
 
 ### Handoff Example
-
 ```
 User: /product-brief
-# Business Analyst creates docs/product-brief.md
+→ Business Analyst creates docs/product-brief.md
 
 User: /prd
-# Product Manager reads product-brief.md
-# Creates docs/prd.md
+→ Product Manager reads product-brief.md
+→ Creates docs/prd.md
 
 User: /architecture
-# System Architect reads prd.md
-# Creates docs/architecture.md
+→ System Architect reads prd.md
+→ Creates docs/architecture.md
 
 User: /sprint-planning
-# Scrum Master reads prd.md and architecture.md
-# Creates docs/sprint-status.yaml and docs/stories/
+→ Scrum Master reads prd.md and architecture.md
+→ Creates docs/sprint-status.yaml and docs/stories/
 
 User: /dev-story STORY-001
-# Developer reads the story file and architecture
-# Implements the code
+→ Developer reads story file and architecture
+→ Implements code with tests
 ```
 
 Each skill automatically loads outputs from previous phases, maintaining context throughout the workflow.
+
+---
+
+## Progressive Disclosure Model
+
+BMAD skills use a **progressive disclosure** approach to manage token budgets:
+
+### Level 1: SKILL.md (<5K tokens)
+- YAML frontmatter (name, description, allowed-tools)
+- When to use this skill
+- Core responsibilities and principles
+- Key workflows and commands
+- Quick reference and examples
+
+### Level 2: REFERENCE.md (detailed patterns)
+- Comprehensive workflow descriptions
+- Detailed examples and edge cases
+- Advanced patterns and techniques
+- Integration scenarios
+
+### Level 3: Resources (specialized guidance)
+- Framework deep dives
+- Template libraries
+- Script documentation
+- Domain-specific reference materials
+
+This ensures skills load quickly while providing access to detailed information when needed.
 
 ---
 
@@ -1435,4 +767,21 @@ Each skill automatically loads outputs from previous phases, maintaining context
 
 - Learn the [Commands](../commands/) each skill supports
 - See [Examples](../examples/) of complete workflows
-- Customize skills through [Configuration](../configuration)
+- Read [Subagent Patterns](../subagent-patterns) for parallel execution strategies
+- Review [Getting Started](../getting-started/) to begin using BMAD
+
+---
+
+## Quick Reference Table
+
+| Skill | Phase | Primary Output | Key Command |
+|-------|-------|----------------|-------------|
+| **bmad-orchestrator** | All | Workflow routing | `/workflow-init`, `/workflow-status` |
+| **business-analyst** | 1 | product-brief.md | `/product-brief` |
+| **product-manager** | 2 | prd.md or tech-spec.md | `/prd`, `/tech-spec` |
+| **system-architect** | 3 | architecture.md | `/architecture` |
+| **scrum-master** | 4 | sprint-plan.md, stories/ | `/sprint-planning` |
+| **developer** | 4 | Working code + tests | `/dev-story {ID}` |
+| **ux-designer** | 2/3 | ux-design.md | `/create-ux-design` |
+| **creative-intelligence** | Cross | research-report.md, brainstorm-session.md | `/brainstorm`, `/research` |
+| **builder** | Meta | Custom skills | `/create-agent` |

@@ -1,6 +1,6 @@
 # BMAD Subagent Architecture Patterns
 
-This document defines standard patterns for leveraging parallel subagents across BMAD skills. Each subagent gets its own 200K token context window, enabling massive parallelization of complex workflows.
+This document defines standard patterns for leveraging parallel subagents across BMAD skills. Each subagent gets its own context window (up to 1M tokens on Claude Sonnet 4.6 and Opus 4.6), enabling massive parallelization of complex workflows.
 
 ## Core Principle
 
@@ -10,18 +10,20 @@ This document defines standard patterns for leveraging parallel subagents across
 
 BMAD skills use these subagent patterns via the `Task` tool:
 
-| Subagent Type | Purpose | Best For |
-|---------------|---------|----------|
-| `general-purpose` | Complex multi-step tasks | Research, implementation, analysis |
-| `Explore` | Codebase exploration | Finding files, understanding structure |
-| `Plan` | Architecture planning | Design decisions, implementation plans |
+| Subagent Type | Model | Tools | Best For |
+|---------------|-------|-------|----------|
+| `general-purpose` | Inherits | All tools | Research, implementation, analysis |
+| `Explore` | Haiku (fast) | Read, Grep, Glob (read-only) | Fast codebase exploration |
+| `Plan` | Inherits | Read-only tools | Architecture planning, design decisions |
+| `Bash` | Inherits | Bash only | Terminal commands, script execution |
 
 ## Standard Subagent Invocation
 
 ```markdown
 Use the Task tool with:
-- subagent_type: "general-purpose" (or "Explore", "Plan")
+- subagent_type: "general-purpose" (or "Explore", "Plan", "Bash")
 - run_in_background: true (for parallel execution)
+- isolation: "worktree" (optional, for parallel story implementation to avoid file conflicts)
 - prompt: Detailed, self-contained task description
 ```
 
@@ -261,14 +263,14 @@ for agent in agents:
 
 ## Token Budget Guidelines
 
-Each subagent has ~200K tokens. Budget allocation:
+Each subagent has up to 1M tokens on Sonnet 4.6 / Opus 4.6 (200K on other models). Recommended budget allocation:
 
 | Activity | Token Budget |
 |----------|-------------|
 | Context loading | ~20K |
-| Research/exploration | ~100K |
-| Generation/writing | ~50K |
-| Verification | ~30K |
+| Research/exploration | ~500K |
+| Generation/writing | ~300K |
+| Verification | ~80K |
 
 ## Anti-Patterns
 
@@ -287,9 +289,9 @@ Each subagent has ~200K tokens. Budget allocation:
 ## Monitoring Pattern
 
 ```markdown
-1. Launch N background agents
+1. Launch N background agents (run_in_background: true)
 2. Continue main context work
-3. Periodically check: AgentOutputTool(agent_id, block=false)
+3. Periodically check: TaskOutput(task_id, block=false)
 4. When all complete: Synthesize results
 5. Update TodoWrite with completion status
 ```

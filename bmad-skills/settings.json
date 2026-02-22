@@ -1,26 +1,33 @@
 {
-  "$schema": "https://claude.ai/schemas/claude-code-settings.json",
-  "description": "BMAD Skills Configuration for Claude Code",
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment": "BMAD Skills reference settings. Copy the 'hooks' section to ~/.claude/settings.json and replace ~/.claude/skills/bmad-skills with your actual install path.",
   "hooks": {
     "SessionStart": [
       {
         "type": "command",
-        "command": "bash $SKILL_DIR/hooks/bmad-session-start.sh",
-        "description": "Initialize BMAD environment variables and context"
+        "command": "bash ~/.claude/skills/bmad-skills/hooks/bmad-session-start.sh"
       }
     ],
     "PreToolUse": [
       {
-        "type": "command",
-        "command": "bash $SKILL_DIR/hooks/bmad-pre-tool.sh",
-        "description": "Validate and log BMAD tool usage"
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/skills/bmad-skills/hooks/bmad-pre-tool.sh"
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
-        "type": "command",
-        "command": "bash $SKILL_DIR/hooks/bmad-post-tool.sh",
-        "description": "Track BMAD workflow progress after tool execution"
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/skills/bmad-skills/hooks/bmad-post-tool.sh"
+          }
+        ]
       }
     ]
   },

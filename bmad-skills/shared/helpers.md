@@ -76,11 +76,11 @@ Purpose: Gather results from parallel agents
 
 Pattern:
 1. For each agent ID:
-   - Call AgentOutputTool with block: false
+   - Call TaskOutput with block: false
    - If not ready, add to pending list
 2. If pending agents exist:
    - Continue other work or
-   - Call AgentOutputTool with block: true
+   - Call TaskOutput with block: true
 3. Read output files from each agent
 4. Return collected results
 ```

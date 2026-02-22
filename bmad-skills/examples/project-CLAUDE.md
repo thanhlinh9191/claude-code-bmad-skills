@@ -47,7 +47,7 @@ For complex tasks, request parallel execution:
 - "Design all components **in parallel**"
 - "Implement these independent stories **in parallel**"
 
-Each subagent has 200K tokens - leverage this for comprehensive analysis.
+Each subagent has up to 1M tokens on Claude Sonnet 4.6 / Opus 4.6 - leverage this for comprehensive analysis.
 
 ## Project Structure
 

@@ -96,7 +96,7 @@ Creates skill directory structure with subdirectories:
 Custom components should follow this structure:
 
 ```
-~/.claude/skills/bmad/[module]/[role]/
+~/.claude/skills/bmad-skills/[skill-name]/
 ├── SKILL.md                 (required: YAML frontmatter + skill definition)
 ├── REFERENCE.md             (optional: detailed patterns/examples)
 ├── scripts/                 (optional: validation/utility scripts)
@@ -108,7 +108,7 @@ Custom components should follow this structure:
 
 After creating custom components:
 
-1. **Skills:** Copy to `~/.claude/skills/bmad/[module]/[role]/`
+1. **Skills:** Copy to `~/.claude/skills/bmad-skills/[skill-name]/`
 2. **Workflows:** Place workflow .md files in appropriate location
 3. **Templates:** Store in templates/ subdirectory
 4. **Validate:** Run validate-skill.sh on SKILL.md
@@ -144,7 +144,7 @@ Keep SKILL.md under 5k tokens:
 
 ## Subagent Strategy
 
-This skill leverages parallel subagents to maximize context utilization (each agent has 200K tokens).
+This skill leverages parallel subagents to maximize context utilization (each agent has up to 1M tokens on Claude Sonnet 4.6 / Opus 4.6).
 
 ### Skill Creation Workflow
 **Pattern:** Parallel Component Creation

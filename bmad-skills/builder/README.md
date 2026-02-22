@@ -127,7 +127,7 @@ cp templates/skill.template.md qa-engineer/SKILL.md
 ./scripts/validate-skill.sh qa-engineer/SKILL.md
 
 # 5. Deploy to ~/.claude/skills/
-cp -r qa-engineer ~/.claude/skills/bmad/
+cp -r qa-engineer ~/.claude/skills/bmad-skills/
 ```
 
 ### Creating a Custom Workflow

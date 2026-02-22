@@ -206,7 +206,7 @@ Ready for code review and deployment.
 
 ## Subagent Strategy
 
-This skill leverages parallel subagents to maximize context utilization (each agent has 200K tokens).
+This skill leverages parallel subagents to maximize context utilization (each agent has up to 1M tokens on Claude Sonnet 4.6 / Opus 4.6).
 
 ### Story Implementation Workflow (Independent Stories)
 **Pattern:** Story Parallel Implementation

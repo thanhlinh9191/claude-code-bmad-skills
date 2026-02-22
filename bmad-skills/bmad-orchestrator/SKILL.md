@@ -238,11 +238,11 @@ See [scripts documentation](resources/workflow-phases.md) for details.
 ## Integration with Other Skills
 
 This orchestrator coordinates with specialized BMAD skills:
-- `bmad-analyst` - Analysis phase workflows
-- `bmad-planner` - Planning phase workflows
-- `bmad-architect` - Architecture design
-- `bmad-sprint-master` - Sprint and story management
-- `bmad-developer` - Development workflows
+- `business-analyst` - Analysis phase workflows
+- `product-manager` - Planning phase workflows
+- `system-architect` - Architecture design
+- `scrum-master` - Sprint and story management
+- `developer` - Development workflows
 
 When routing to these skills, pass context:
 - Current project config
@@ -260,7 +260,7 @@ When routing to these skills, pass context:
 
 ## Subagent Strategy
 
-This skill leverages parallel subagents to maximize context utilization (each agent has 200K tokens).
+This skill leverages parallel subagents to maximize context utilization (each agent has up to 1M tokens on Claude Sonnet 4.6 / Opus 4.6).
 
 ### Workflow Status Check Workflow
 **Pattern:** Fan-Out Research
