@@ -1,0 +1,49 @@
+{
+  "name": "bmad-planning-orchestrator",
+  "displayName": "BMAD Planning & Orchestrator",
+  "version": "1.0.0",
+  "description": "A Claude Code planning & orchestration harness for the BMAD Method by the BMAD Code Organization (https://github.com/bmad-code-org/BMAD-METHOD). Facilitates the BMAD planning lifecycle — brainstorm, research, product brief, SPEC, PRD, UX, architecture, epics & stories — then orchestrates conflict-free, dependency-ordered PARALLEL workstreams and hands ready-for-dev stories off to your dev tools. It plans and orchestrates; it never writes the code.",
+  "author": {
+    "name": "AJ Geddes",
+    "url": "https://github.com/aj-geddes/claude-code-bmad-skills"
+  },
+  "homepage": "https://aj-geddes.github.io/claude-code-bmad-skills",
+  "repository": "https://github.com/aj-geddes/claude-code-bmad-skills",
+  "license": "MIT",
+  "keywords": [
+    "bmad",
+    "bmad-method",
+    "bmad-code-org",
+    "planning",
+    "orchestration",
+    "roadmap",
+    "prd",
+    "architecture",
+    "epics",
+    "user-stories",
+    "parallel-workstreams",
+    "context-engineering",
+    "agile"
+  ],
+  "hooks": "./hooks/hooks.json",
+  "userConfig": {
+    "outputFolder": {
+      "type": "string",
+      "title": "Output folder",
+      "description": "Directory (relative to your project) where BMAD planning artifacts are written.",
+      "default": "bmad-output"
+    },
+    "defaultTrack": {
+      "type": "string",
+      "title": "Default scale-adaptive track",
+      "description": "Preferred planning track when not chosen interactively: quick-flow, bmad-method, or enterprise. Leave blank to always choose interactively.",
+      "default": ""
+    },
+    "maxParallel": {
+      "type": "string",
+      "title": "Max parallel workstreams",
+      "description": "Default maximum number of stories planned to run concurrently in a parallel wave (your dev tool enforces the actual concurrency).",
+      "default": "3"
+    }
+  }
+}
