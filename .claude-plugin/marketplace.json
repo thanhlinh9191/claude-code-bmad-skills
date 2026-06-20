@@ -1,0 +1,31 @@
+{
+  "name": "bmad-method-harness",
+  "owner": {
+    "name": "AJ Geddes",
+    "url": "https://github.com/aj-geddes"
+  },
+  "description": "A community marketplace hosting the BMAD Planning & Orchestrator — a Claude Code harness for the BMAD Method by the BMAD Code Organization, focused on planning, roadmapping, and conflict-free parallel orchestration.",
+  "version": "0.5.0",
+  "plugins": [
+    {
+      "name": "bmad-planning-orchestrator",
+      "source": "./bmad-planning-orchestrator",
+      "description": "Plan, document, and orchestrate software work the BMAD way — product briefs, PRDs, architecture, epics, and ready-for-dev stories — then fan the work out as conflict-free parallel workstreams that your dev tools execute. Implements the BMAD Method (v6.x) by the BMAD Code Organization. This plugin does the planning and orchestration; it never writes the code.",
+      "category": "planning",
+      "keywords": [
+        "bmad",
+        "bmad-method",
+        "bmad-code-org",
+        "planning",
+        "orchestration",
+        "roadmap",
+        "product-requirements",
+        "prd",
+        "architecture",
+        "agile",
+        "parallel-workstreams",
+        "context-engineering"
+      ]
+    }
+  ]
+}

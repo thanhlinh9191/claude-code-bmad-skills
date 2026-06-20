@@ -1,246 +1,80 @@
-# Contributing to BMAD Skills for Claude Code
+# Contributing
 
-Thank you for your interest in contributing! This project implements the BMAD Method for Claude Code.
+Thanks for helping improve the **BMAD Planning & Orchestrator** plugin. Please
+keep the credit where it belongs: the **BMAD Method™** is the work of the
+**[BMAD Code Organization](https://github.com/bmad-code-org/BMAD-METHOD)**; this
+repo is only a Claude Code harness for it. Do not remove or weaken attribution,
+and don't alter the BMAD methodology itself — coordinate upstream for that.
 
-## 🎯 Attribution
+## The line you must not cross
 
-**Important**: The BMAD Method is created and owned by the [BMAD Code Organization](https://github.com/bmad-code-org).
+**This plugin plans and orchestrates work. It never implements it.**
 
-When contributing:
-- ✅ Improvements to Claude Code integration
-- ✅ Bug fixes in installation or skills
-- ✅ Better documentation
-- ✅ New domain skills (e.g., Ruby, Go, Rust)
-- ✅ Enhanced Memory integration
-- ✅ Command improvements
+A contribution is in scope if it helps *plan, document, sequence, or hand off*
+work. It is **out of scope** the moment it tries to *write application code, run
+tests, lint, check coverage, build, or review an implemented diff*. The furthest
+the plugin goes is producing a `ready-for-dev` story file and a handoff manifest.
 
-**Do not**:
-- ❌ Modify core BMAD methodology without coordinating with BMAD Code org
-- ❌ Remove or alter attribution to BMAD authors
-- ❌ Change fundamental BMAD workflows or agent roles
+`bmad-builder`'s `validate-skill.sh` flags scope-leak language; a PR that
+introduces code execution will be rejected even if it "works."
 
-## 🚀 How to Contribute
+## Adding or editing a skill
 
-### 1. Fork the Repository
+Skills live in `bmad-planning-orchestrator/skills/<name>/`.
 
-```bash
-# Fork on GitHub, then clone your fork
-git clone https://github.com/YOUR-USERNAME/claude-code-bmad-skills.git
-cd claude-code-bmad-skills
-```
+1. Scaffold: `./bmad-planning-orchestrator/skills/bmad-builder/scripts/scaffold-skill.sh <name>`
+2. `SKILL.md` rules:
+   - YAML frontmatter: `name` (== directory), `description` (≤1024 chars, with
+     concrete "use when…" trigger phrases), `allowed-tools` (planning tools only).
+   - Body ≤ ~5K tokens; put long reference detail in `REFERENCE.md`.
+   - Use `${CLAUDE_PLUGIN_ROOT}` for every bundled path; never hardcode
+     `~/.claude` or absolute paths; never `../` out of the plugin root.
+   - End with the BMAD attribution footer (see any existing skill).
+3. Follow BMAD fidelity: **tracks** not Levels (Quick Flow / BMad Method /
+   Enterprise); **no story points / velocity / burndown** (one-dev-day sizing,
+   count-based delivery); three-intent (Create/Update/Validate) where it fits;
+   the story-file contract (locked AC/Dev Notes/Testing, Owned File/Module Scope,
+   source-cited Dev Notes).
+4. If the skill maps to an upstream BMAD skill, add the row to
+   `bmad-planning-orchestrator/resources/bmad-method-mapping.md`.
 
-### 2. Create a Branch
-
-```bash
-# Use descriptive branch names
-git checkout -b feature/add-rust-skill
-git checkout -b fix/install-script-bug
-git checkout -b docs/improve-readme
-```
-
-### 3. Make Your Changes
-
-#### Adding a New Skill
+## Before you open a PR
 
 ```bash
-# Create skill directory
-mkdir -p skills/your-skill
+# Frontmatter + scope-leak check on every skill
+find bmad-planning-orchestrator/skills -name SKILL.md \
+  -exec ./bmad-planning-orchestrator/skills/bmad-builder/scripts/validate-skill.sh {} \;
 
-# Create SKILL.md
-# Follow the pattern in existing skills
-# Include: Overview, Best Practices, Examples, Anti-patterns
+# Manifests parse
+python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
+python3 -m json.tool bmad-planning-orchestrator/.claude-plugin/plugin.json >/dev/null
+
+# Scripts executable
+find bmad-planning-orchestrator -name "*.sh" -o -name "*.py" | xargs chmod +x
+
+# Smoke-test locally
+claude --plugin-dir ./bmad-planning-orchestrator
 ```
 
-**Skill Template:**
-```markdown
-# [Language/Domain] Skill
+Bump `version` in `plugin.json` for user-visible changes and add a `CHANGELOG`
+entry noting which upstream BMAD v6.x the change tracks.
 
-## Overview
-[Brief description of what this skill covers]
+## Good contributions
 
-## Best Practices
-[Key practices and patterns]
+- New or improved **planning/orchestration** skills (e.g. better elicitation,
+  new planning document shapes from upstream BMAD).
+- Better track right-sizing, dependency/parallel-wave planning, handoff-manifest
+  adapters for more dev runners.
+- Documentation, examples, and keeping `bmad-method-mapping.md` in sync with
+  upstream BMAD v6.x.
 
-## Code Examples
-[Working examples with explanations]
+## Style
 
-## Common Patterns
-[Frequently used patterns]
+Functional and direct. Persona names (Mary/John/Winston/Sally) are fine as
+flavor in prose, but skills are workflows, not characters — no heavy persona
+overhead. Match the surrounding skills' structure and tone.
 
-## Anti-Patterns
-[Things to avoid]
+## License
 
-## Integration with BMAD
-[How this skill works with BMAD projects]
-```
-
-#### Improving Existing Skills
-
-- Add missing examples
-- Update deprecated practices
-- Improve clarity
-- Add security considerations
-- Include performance tips
-
-#### Updating Commands
-
-Commands are in `commands/*.md`. Follow the existing format:
-
-```markdown
-# Command Name
-
-You are being asked to [do something].
-
-## Your Task
-
-[Clear, step-by-step instructions]
-
-## Important
-[Critical points]
-```
-
-### 4. Test Your Changes
-
-```bash
-# Test installation locally
-./install.sh
-
-# Verify files installed correctly
-ls -la ~/.claude/skills/
-
-# Test in Claude Code
-# - Start Claude Code
-# - Try /bmad-init or other commands
-# - Verify new skills load properly
-```
-
-### 5. Commit Your Changes
-
-Follow conventional commits:
-
-```bash
-git add .
-git commit -m "feat(skills): add Rust development skill"
-git commit -m "fix(install): correct permissions issue on Windows"
-git commit -m "docs(readme): improve LLM installation instructions"
-```
-
-**Commit types:**
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation only
-- `refactor`: Code refactoring
-- `test`: Adding tests
-- `chore`: Maintenance
-
-### 6. Push and Create PR
-
-```bash
-git push origin feature/add-rust-skill
-```
-
-Then create a Pull Request on GitHub with:
-- **Title**: Clear description of change
-- **Description**:
-  - What problem does this solve?
-  - How does it solve it?
-  - Any breaking changes?
-  - Testing done?
-
-## 📝 Contribution Guidelines
-
-### Code Quality
-
-- **Skills**: Clear, actionable, with examples
-- **Commands**: Step-by-step, LLM-executable
-- **Scripts**: Well-commented, error-handling
-- **Documentation**: Clear, concise, accurate
-
-### File Organization
-
-```
-skills/              # One skill per directory
-  skill-name/
-    SKILL.md         # Main skill file
-
-commands/            # Slash command definitions
-  command-name.md    # One command per file
-
-hooks/               # Claude Code hooks
-  hook-name.sh       # Hook scripts
-```
-
-### Documentation Standards
-
-- Use clear, simple language
-- Include code examples
-- Explain WHY, not just HOW
-- Keep LLM-readability in mind
-- Update README if adding features
-
-## 🐛 Reporting Issues
-
-Found a bug? Have a suggestion?
-
-1. **Check existing issues** first
-2. **Create a new issue** with:
-   - Clear title
-   - Description of problem
-   - Steps to reproduce
-   - Expected behavior
-   - Actual behavior
-   - Environment (OS, Claude Code version)
-
-## 💡 Feature Requests
-
-Want a new feature?
-
-1. **Check discussions** to see if it's been proposed
-2. **Open a discussion** to get feedback
-3. **Create an issue** if there's community interest
-
-## 🤝 Code of Conduct
-
-- Be respectful and inclusive
-- Provide constructive feedback
-- Credit others' work
-- Help newcomers
-- Focus on the project's goals
-
-## ✅ Pull Request Checklist
-
-Before submitting:
-
-- [ ] Code follows existing patterns
-- [ ] Documentation updated
-- [ ] Tested locally
-- [ ] Commits are clear and atomic
-- [ ] PR description is complete
-- [ ] BMAD attribution maintained
-- [ ] No breaking changes (or clearly documented)
-
-## 🎓 Learning Resources
-
-### BMAD Method
-- [Original BMAD](https://github.com/bmad-code-org/BMAD-METHOD)
-- [BMAD Website](https://bmadcodes.com/bmad-method/)
-- [YouTube Channel](https://www.youtube.com/@BMadCode)
-
-### Claude Code
-- [Claude Code Docs](https://docs.claude.com/claude-code)
-- Skills system
-- Slash commands
-- Memory integration
-
-## 🙏 Thank You!
-
-Your contributions help make BMAD more accessible in Claude Code.
-
-Special thanks to:
-- **BMAD Code Organization** - For the amazing methodology
-- **All contributors** - For improvements and fixes
-- **Community** - For feedback and support
-
----
-
-**Questions?** Open a discussion or issue. We're here to help!
+By contributing you agree your work is licensed under [MIT](LICENSE). The BMAD
+Method™ name and methodology remain the property of the BMAD Code Organization.

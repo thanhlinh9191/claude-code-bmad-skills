@@ -1,110 +1,108 @@
-# BMAD Skills Development Repository
+# CLAUDE.md
 
-This repository contains the **BMAD Skills** package for Claude Code - a suite of skills implementing the BMAD Method (Breakthrough Method for Agile AI-Driven Development).
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Repository Structure
+This repo is a **Claude Code plugin marketplace** shipping a single plugin,
+**BMAD Planning & Orchestrator** — a harness for the [BMAD Method](https://github.com/bmad-code-org/BMAD-METHOD)
+focused on **planning and orchestration only**. There is no application to build
+or run. The "product" is Markdown skills + a few shell/Python helper scripts +
+document templates, distributed as a plugin and installed from the marketplace.
+
+## The one rule that defines this project
+
+**This plugin plans and orchestrates work; it never implements it.** No skill,
+agent, hook, or script here may write application code, run tests, lint, check
+coverage, build, or review an implemented diff. The last artifact the plugin
+produces is a `ready-for-dev` story file (plus a handoff manifest); a separate
+dev tool does the coding. When editing or adding anything, if it starts to
+*execute* development rather than *plan* it, it's out of scope — plan it and hand
+it off instead. This is the line reviewers must protect (`bmad-builder`'s
+`validate-skill.sh` flags scope leaks automatically).
+
+## Architecture: marketplace → plugin → skills
 
 ```
-claude-code-bmad-skills/
-├── bmad-skills/              # The distributable skills package
-│   ├── CLAUDE.md             # User-facing skill activation guide
-│   ├── SUBAGENT-PATTERNS.md  # Subagent architecture patterns
-│   ├── bmad-orchestrator/    # Core orchestrator skill
-│   ├── business-analyst/     # Phase 1: Analysis
-│   ├── product-manager/      # Phase 2: Planning
-│   ├── system-architect/     # Phase 3: Solutioning
-│   ├── scrum-master/         # Phase 4: Sprint Planning
-│   ├── developer/            # Phase 4: Implementation
-│   ├── ux-designer/          # Cross-phase UX
-│   ├── creative-intelligence/# Cross-phase research/brainstorming
-│   ├── builder/              # Meta: Create custom skills
-│   ├── shared/               # Shared templates and utilities
-│   ├── hooks/                # Session/tool hooks
-│   └── examples/             # Example project templates
-├── bmad-v6/                  # Legacy/source BMAD implementation
-├── docs/                     # GitHub Pages documentation site
-└── install-v6.sh/ps1         # Installation scripts
+.claude-plugin/marketplace.json          # marketplace "bmad-method-harness", one plugin entry → ./bmad-planning-orchestrator
+bmad-planning-orchestrator/
+├── .claude-plugin/plugin.json           # manifest: name, version, userConfig, hooks path
+├── skills/<skill>/SKILL.md              # 20 auto-discovered, model-invoked skills (+ REFERENCE.md, scripts/, templates/)
+├── agents/*.md                          # planning subagents (story-author, epic-scoper, readiness-auditor)
+├── hooks/hooks.json + scripts/          # SessionStart context load + Stop "next step" nudge
+├── scripts/*                            # SHARED utils referenced by skills via ${CLAUDE_PLUGIN_ROOT}
+└── resources/*.md                       # guides + bmad-method-mapping.md (skill→upstream credit)
 ```
 
-## Development Tasks
+- **Skills are the primitive.** Mirroring current BMAD (v6.1+), everything is a
+  skill with a `SKILL.md` entrypoint. Skills are namespaced
+  `/bmad-planning-orchestrator:<skill>` and mostly auto-invoke based on their
+  `description` trigger phrases.
+- **`bmad-help` + `bmad-init` are the spine.** `bmad-init` selects a track and
+  scaffolds the workspace; `bmad-help` reads artifact state and routes to the
+  next skill. The hooks fire a lightweight next-step nudge.
+- **Phases:** Analysis → Planning → Solutioning → Implementation-handoff. The
+  plugin owns everything up to and including story creation
+  (`bmad-epics-and-stories`) and the orchestration seam (`bmad-sprint-planning`,
+  `bmad-parallel-plan`, `bmad-handoff`). `bmad-readiness-check` is the literal
+  "Planning Ends Here" gate.
+- **Parallel-safety is an upstream planning product** (the project's whole
+  thesis): `bmad-architecture` prevents *semantic* conflicts; story **Owned
+  File/Module Scope** + `scripts/scope-conflict-check.sh` prevent *file/merge*
+  conflicts; `bmad-parallel-plan` topo-sorts stories into disjoint **waves**.
+  Understanding this requires reading `bmad-architecture`,
+  `bmad-epics-and-stories`, and `bmad-parallel-plan` together.
 
-When working on this repo, I may ask you to:
+## Conventions that are easy to get wrong
 
-### Skill Development
-- "Add a new skill for [domain]" → Use the builder skill patterns
-- "Update [skill-name] skill" → Edit files in bmad-skills/[skill-name]/
-- "Add a script to [skill-name]" → Create executable in scripts/
-- "Add a template for [workflow]" → Create in templates/
+- **Tracks, not Levels.** Right-size with Quick Flow / BMad Method / Enterprise.
+  There are no numbered project Levels 0–4 (that was the old model).
+- **No story points.** Sizing is "small enough for one agent session" (~one
+  dev-day); delivery is count-based (stories remaining ÷ completion rate). There
+  is deliberately no Fibonacci/velocity/burndown anywhere.
+- **`${CLAUDE_PLUGIN_ROOT}` for every bundled path.** Plugins are copied to a
+  cache on install, so never hardcode `~/.claude` or absolute paths, and never
+  use `../` to escape the plugin root. Double-quote the variable in hook commands.
+- **Story file shape is a contract.** `{epic}.{story}.{slug}.story.md` with
+  source-cited Dev Notes, Owned File/Module Scope, and **locked** Acceptance
+  Criteria / Dev Notes / Testing. The `handoff-manifest.json` schema is a stable
+  versioned interface — bump `schemaVersion` on change.
+- **SKILL.md ≤ ~5K tokens**, overflow into `REFERENCE.md`. Every `SKILL.md` ends
+  with the BMAD attribution footer.
 
-### Skill Structure (Anthropic Specification)
-Each skill must have:
-```
-skill-name/
-├── SKILL.md           # Required: YAML frontmatter + instructions (<5K tokens)
-├── REFERENCE.md       # Optional: Detailed reference material
-├── scripts/           # Optional: Executable utilities (.sh, .py)
-├── templates/         # Optional: Document templates (.template.md)
-└── resources/         # Optional: Reference data (.md)
-```
-
-### SKILL.md Format
-```yaml
----
-name: skill-name           # lowercase, hyphens, max 64 chars
-description: |             # max 1024 chars, include trigger words
-  What it does AND when to use it.
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, TodoWrite
----
-
-# Skill Name
-
-[Markdown content under 5K tokens]
-```
-
-### Testing Skills
-- Test trigger phrases match the skill description
-- Verify scripts are executable and functional
-- Check templates have proper {{variable}} placeholders
-- Ensure SKILL.md stays under 5K tokens
-
-### Subagent Patterns
-All skills should include a "Subagent Strategy" section defining:
-- Which workflows use parallel agents
-- Agent count and task allocation
-- Coordination approach
-- Example subagent prompts
-
-## Key Files to Know
-
-| File | Purpose |
-|------|---------|
-| `bmad-skills/CLAUDE.md` | User-facing skill activation guide |
-| `bmad-skills/SUBAGENT-PATTERNS.md` | Subagent architecture reference |
-| `bmad-skills/shared/helpers.md` | Shared utility patterns |
-| `bmad-skills/builder/` | Meta-skill for creating new skills |
-| `docs/` | GitHub Pages documentation |
-
-## Common Development Commands
+## Commands
 
 ```bash
-# Validate a skill's YAML frontmatter
-./bmad-skills/builder/scripts/validate-skill.sh bmad-skills/[skill]/SKILL.md
+# Validate a SKILL.md (frontmatter + scope-leak check)
+./bmad-planning-orchestrator/skills/bmad-builder/scripts/validate-skill.sh <path-to-SKILL.md>
 
-# Scaffold a new skill
-./bmad-skills/builder/scripts/scaffold-skill.sh new-skill-name
+# Scaffold a new planning skill
+./bmad-planning-orchestrator/skills/bmad-builder/scripts/scaffold-skill.sh <new-skill-name>
 
-# Check all scripts are executable
-find bmad-skills -name "*.sh" -o -name "*.py" | xargs ls -la
+# Make scripts executable after creating/editing them
+find bmad-planning-orchestrator -name "*.sh" -o -name "*.py" | xargs chmod +x
+
+# Validate the manifests parse
+python3 -m json.tool .claude-plugin/marketplace.json >/dev/null && \
+python3 -m json.tool bmad-planning-orchestrator/.claude-plugin/plugin.json >/dev/null && echo OK
+
+# Test the plugin locally without installing
+claude --plugin-dir ./bmad-planning-orchestrator
 ```
 
-## When Making Changes
+There is no compiler/linter/test-runner for the repo itself. "Does it work" =
+manifests parse, `validate-skill.sh` passes on every `SKILL.md`, scripts are
+executable, templates keep their `{{placeholders}}`, and **no scope leaks**.
 
-1. **Edit skills in `bmad-skills/`** - this is the distributable package
-2. **Keep SKILL.md concise** - under 5K tokens, reference REFERENCE.md for details
-3. **Make scripts executable** - `chmod +x` on all .sh and .py files
-4. **Include subagent strategies** - define parallel execution patterns
-5. **Update documentation** - keep docs/ in sync for GitHub Pages
+## Distribution
 
-## Legacy Reference
+Install is marketplace-only (`/plugin marketplace add` → `/plugin install`).
+There are no `install-v6.sh/ps1` scripts anymore. Version is pinned in
+`plugin.json` (bump it to ship updates) and the CHANGELOG records which upstream
+BMAD v6.x the release tracks.
 
-The `bmad-v6/` directory contains the original BMAD implementation. Use it as reference but don't modify - all active development is in `bmad-skills/`.
+## Attribution (non-negotiable)
+
+The BMAD Method™ and all its concepts belong to the **BMAD Code Organization**
+(https://github.com/bmad-code-org/BMAD-METHOD). Preserve the LICENSE attribution
+clause verbatim, the per-`SKILL.md` footer, `ATTRIBUTION.md`, and the upstream
+links in the manifest when editing those files. `resources/bmad-method-mapping.md`
+records the skill→upstream mapping; keep it current.

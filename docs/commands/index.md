@@ -1,1235 +1,344 @@
 ---
 layout: default
-title: "Commands"
-description: "Complete reference for all 15 BMAD slash commands. Learn how to use each command with detailed examples and best practices."
-keywords: "BMAD commands, Claude Code commands, slash commands, workflow commands, agile commands"
+title: "Skills Reference"
+description: "Complete reference for all 20 BMAD Planning & Orchestrator skills. Invoked as /bmad-planning-orchestrator:<skill> or auto-triggered by Claude. Includes migration map from old slash commands."
+keywords: "BMAD skills, Claude Code plugin, bmad-planning-orchestrator, skill reference, slash commands migration, BMAD Method"
 ---
 
-# Commands Reference
+# Skills Reference
 
-BMAD provides 15 slash commands for managing your agile development workflow. Each command is designed for a specific phase and purpose.
+The **BMAD Planning & Orchestrator** plugin ships 20 skills, not slash commands. Skills are namespaced under the plugin and invoked as:
 
----
+```
+/bmad-planning-orchestrator:<skill-name>
+```
 
-## How Commands Work
+Most skills are **auto-invoked by Claude** based on what you are doing — you rarely type the full namespace. When Claude detects that your planning workflow calls for a particular skill, it will invoke it automatically. You can always call any skill explicitly if you prefer.
 
-Commands trigger **BMAD skills** - specialized AI agents that execute structured workflows. Skills are located in `~/.claude/skills/bmad-skills/` and may leverage **parallel subagents** for complex tasks.
-
-**How it works:**
-1. You trigger a command (e.g., `/prd`)
-2. Claude activates the corresponding skill (e.g., `product-manager`)
-3. The skill may launch parallel subagents to process different sections simultaneously
-4. Results are synthesized and presented as a unified document
-
-**Parallel Execution:** Skills like Product Manager, System Architect, and Creative Intelligence decompose work into independent subtasks executed by parallel subagents, each with up to 1M tokens of context on Claude Sonnet 4.6 / Opus 4.6.
-
-**Quick tip:** Type `/workflow-status` anytime to see which command to run next.
+> **Attribution:** The BMAD Method is created and maintained by the [BMAD Code Organization](https://github.com/bmad-code-org/BMAD-METHOD). This plugin is an independent Claude Code harness — not an official BMAD product. All methodology credit belongs to the BMAD Code Organization.
 
 ---
 
-## Commands by Phase
+## What These Skills Do (and Do Not Do)
 
-### Initialization
-
-| Command | Purpose |
-|---------|---------|
-| [/workflow-init](#workflow-init) | Initialize BMAD in your project |
-| [/workflow-status](#workflow-status) | Check progress and get recommendations |
-
-### Phase 1 - Analysis
-
-| Command | Purpose |
-|---------|---------|
-| [/product-brief](#product-brief) | Create comprehensive product brief |
-
-### Phase 2 - Planning
-
-| Command | Purpose |
-|---------|---------|
-| [/prd](#prd) | Product Requirements Document |
-| [/tech-spec](#tech-spec) | Technical Specification (Level 0-1) |
-| [/create-ux-design](#create-ux-design) | UX/UI design workflow |
-
-### Phase 3 - Solutioning
-
-| Command | Purpose |
-|---------|---------|
-| [/architecture](#architecture) | System architecture design |
-| [/solutioning-gate-check](#solutioning-gate-check) | Validate architecture |
-
-### Phase 4 - Implementation
-
-| Command | Purpose |
-|---------|---------|
-| [/sprint-planning](#sprint-planning) | Plan sprint iterations |
-| [/create-story](#create-story) | Create individual story |
-| [/dev-story](#dev-story) | Implement user story |
-
-### Builder (Custom)
-
-| Command | Purpose |
-|---------|---------|
-| [/create-agent](#create-agent) | Create custom BMAD agent |
-| [/create-workflow](#create-workflow) | Create custom workflow |
-
-### Creative Intelligence
-
-| Command | Purpose |
-|---------|---------|
-| [/brainstorm](#brainstorm) | Structured brainstorming |
-| [/research](#research) | Market/tech/competitive research |
+The plugin **plans and orchestrates**. It never writes application code, runs tests, lints, checks coverage, or reviews implemented diffs. The last artifact it produces is a `ready-for-dev` story file and a `handoff-manifest.json` for consumption by external dev tools.
 
 ---
 
-## Initialization Commands
+## Skills by Phase
 
-<h3 id="workflow-init">/workflow-init</h3>
+### Cross-Phase (Orchestration Spine)
 
-Initialize BMAD in your project. This creates the project configuration and sets up the output directory structure.
+| Skill | Invocation | Purpose |
+|-------|-----------|---------|
+| [bmad-help](#bmad-help) | `/bmad-planning-orchestrator:bmad-help` | "What do I run next?" router; reads artifact state |
+| [bmad-init](#bmad-init) | `/bmad-planning-orchestrator:bmad-init` | Interactive track selection; scaffolds workspace |
 
-**When to use:** At the start of any new project
+### Phase 1 — Analysis (Optional)
 
-**Output:** `bmad/config.yaml`
+| Skill | Invocation | Purpose |
+|-------|-----------|---------|
+| [bmad-brainstorm](#bmad-brainstorm) | `/bmad-planning-orchestrator:bmad-brainstorm` | Structured ideation |
+| [bmad-research](#bmad-research) | `/bmad-planning-orchestrator:bmad-research` | Market / domain / technical research |
+| [bmad-product-brief](#bmad-product-brief) | `/bmad-planning-orchestrator:bmad-product-brief` | Product brief (guided discovery) |
+| [bmad-prfaq](#bmad-prfaq) | `/bmad-planning-orchestrator:bmad-prfaq` | Working-Backwards press release + FAQ |
+| [bmad-spec](#bmad-spec) | `/bmad-planning-orchestrator:bmad-spec` | Five-field SPEC.md kernel |
 
-#### Example
+### Phase 2 — Planning
 
-~~~~
-User: /workflow-init
+| Skill | Invocation | Purpose |
+|-------|-----------|---------|
+| [bmad-prd](#bmad-prd) | `/bmad-planning-orchestrator:bmad-prd` | PRD with FRs/NFRs, epics, MoSCoW |
+| [bmad-tech-spec](#bmad-tech-spec) | `/bmad-planning-orchestrator:bmad-tech-spec` | Lightweight tech spec (Quick Flow track) |
 
-Claude: Welcome to BMAD! I'll initialize your project.
+### Phase 3 — Solutioning
 
-## Project Configuration
+| Skill | Invocation | Purpose |
+|-------|-----------|---------|
+| [bmad-ux](#bmad-ux) | `/bmad-planning-orchestrator:bmad-ux` | UX contract: DESIGN.md + EXPERIENCE.md |
+| [bmad-architecture](#bmad-architecture) | `/bmad-planning-orchestrator:bmad-architecture` | System architecture + ADRs |
+| [bmad-epics-and-stories](#bmad-epics-and-stories) | `/bmad-planning-orchestrator:bmad-epics-and-stories` | Epics + compiled story context files |
+| [bmad-readiness-check](#bmad-readiness-check) | `/bmad-planning-orchestrator:bmad-readiness-check` | PASS / CONCERNS / FAIL gate |
 
-What is your project name?
-> Real-time Chat Application
+### Phase 4 — Implementation Handoff
 
-What type of project is this?
-1. web-app
-2. mobile-app
-3. api
-4. game
-5. library
-6. other
-> 1
+| Skill | Invocation | Purpose |
+|-------|-----------|---------|
+| [bmad-sprint-planning](#bmad-sprint-planning) | `/bmad-planning-orchestrator:bmad-sprint-planning` | Sequence stories; emit sprint-status.yaml |
+| [bmad-parallel-plan](#bmad-parallel-plan) | `/bmad-planning-orchestrator:bmad-parallel-plan` | Dependency DAG → conflict-free parallel waves |
+| [bmad-handoff](#bmad-handoff) | `/bmad-planning-orchestrator:bmad-handoff` | Emit handoff-manifest.json for dev tools |
 
-## Project Level
+### Cross-Phase & Meta
 
-Based on scope, select the appropriate level:
-
-| Level | Stories | Example |
-|-------|---------|---------|
-| 0 | 1 | Bug fix |
-| 1 | 1-10 | Single feature |
-| 2 | 5-15 | Feature set |
-| 3 | 12-40 | System integration |
-| 4 | 40+ | Enterprise |
-
-For a chat app with user auth, real-time messaging, channels,
-and notifications, I recommend Level 2.
-
-Select level (0-4):
-> 2
-
-## Created Configuration
-
-```yaml
-# bmad/config.yaml
-project_name: "Real-time Chat Application"
-project_type: "web-app"
-project_level: 2
-output_folder: "docs"
-
-bmm:
-  workflow_status_file: "docs/bmm-workflow-status.yaml"
-  sprint_status_file: "docs/sprint-status.yaml"
-
-paths:
-  docs: "docs"
-  stories: "docs/stories"
-  tests: "tests"
-```
-
-Created directories:
-- docs/
-- docs/stories/
-
-Project initialized! Run /workflow-status to see next steps.
-~~~~
+| Skill | Invocation | Purpose |
+|-------|-----------|---------|
+| [bmad-correct-course](#bmad-correct-course) | `/bmad-planning-orchestrator:bmad-correct-course` | Mid-stream scope change → re-plan |
+| [bmad-investigate](#bmad-investigate) | `/bmad-planning-orchestrator:bmad-investigate` | Forensic triage → investigation case file + optional fix story |
+| [bmad-document-project](#bmad-document-project) | `/bmad-planning-orchestrator:bmad-document-project` | Brownfield current-state documentation (read-only) |
+| [bmad-builder](#bmad-builder) | `/bmad-planning-orchestrator:bmad-builder` | Scaffold and validate custom planning skills |
 
 ---
 
-<h3 id="workflow-status">/workflow-status</h3>
+## Tracks, Not Levels
 
-Check your project's current progress and get recommendations for what to do next.
+Right-sizing uses **tracks** chosen interactively during `bmad-init`. There are no numbered Levels 0–4.
 
-**When to use:** Anytime you're unsure what to do next
+| Track | Typical story count | Required planning |
+|-------|--------------------|--------------------|
+| **Quick Flow** | 1–15 stories | tech-spec only |
+| **BMad Method** | 10–50+ stories | PRD + Architecture (+ optional UX) |
+| **Enterprise** | 30+ stories | PRD + Architecture + Security + DevOps planning |
 
-**Output:** Status display (no file)
-
-#### Example
-
-```
-User: /workflow-status
-
-Claude: ## Real-time Chat Application - Workflow Status
-
-### Project Info
-- Type: web-app
-- Level: 2 (Medium feature set)
-- Output: docs/
-
-### Phase Status
-
-| Phase | Document | Status | File |
-|-------|----------|--------|------|
-| 1 - Analysis | Product Brief | ✓ Complete | docs/product-brief.md |
-| 2 - Planning | PRD | ✓ Complete | docs/prd.md |
-| 2 - Planning | UX Design | Optional | - |
-| 3 - Solutioning | Architecture | ⚠ In Progress | - |
-| 4 - Implementation | Sprint Plan | Pending | - |
-
-### Recommendation
-
-**Current Focus:** Phase 3 - Solutioning
-
-Continue with `/architecture` to complete the system architecture design.
-
-After architecture is complete:
-1. Run `/solutioning-gate-check` to validate
-2. Proceed to `/sprint-planning`
-
-### Quick Stats
-- Documents: 2/4 complete
-- Estimated remaining: Architecture, Sprint Plan
-```
+Tracks are not locked. Scope growth can promote a project from Quick Flow to BMad Method (by running `bmad-prd` and `bmad-architecture`), or from BMad Method to Enterprise (by adding security and DevOps planning passes before the readiness gate). Record the change in `decision-log.md`.
 
 ---
 
-## Phase 1 - Analysis Commands
+## Sizing: One Dev-Day Decomposition
 
-<h3 id="product-brief">/product-brief</h3>
-
-Create a comprehensive product brief that defines the problem space, target audience, and business goals.
-
-**When to use:** Starting a new product (Level 1+, required for Level 2+)
-
-**Output:** `docs/product-brief.md`
-
-**Prerequisite:** `/workflow-init`
-
-**Subagent Execution:** This command may use parallel subagents for document sections (Executive Summary, Problem Statement, Market Analysis, Solution Overview) when creating comprehensive product briefs.
-
-#### Example
-
-```
-User: /product-brief
-
-Claude: I'll help create a product brief for Real-time Chat Application.
-
-## Executive Summary
-
-In 2-3 sentences, what does this product do?
-> A team collaboration platform focused on real-time communication.
-> Combines chat, voice, and video with deep integrations for
-> developer tools.
-
-## Problem Statement
-
-What problems does this solve? I'll structure them:
-
-1. **Communication silos:** Teams use multiple apps (Slack, Discord, Teams)
-2. **Context switching:** Developers lose focus switching between chat and IDE
-3. **Limited customization:** Existing tools have rigid workflows
-
-Is this accurate?
-> Yes, also add "Poor code sharing experience"
-
-Added: **Poor code sharing:** Pasting code in chat loses formatting and context
-
-## Target Audience
-
-Primary users:
-> Software development teams, 5-50 people
-> Tech-forward companies
-> Remote-first teams
-
-Secondary users:
-> Individual developers in open source communities
-
-## Solution Overview
-
-Based on problems, your solution will:
-- Unified chat, voice, video in one app
-- IDE extensions (VS Code, JetBrains)
-- Rich code snippets with syntax highlighting
-- Customizable workflows and bots
-
-## Competitive Landscape
-
-Key competitors:
-- **Slack:** Market leader, expensive, slow
-- **Discord:** Gaming-focused, poor enterprise features
-- **Teams:** Microsoft-only, complex
-
-Your differentiation:
-> Developer-first experience, superior code handling,
-> privacy-focused (self-hostable)
-
-## Business Model
-
-How will you monetize?
-> Freemium - free for small teams (<10)
-> Pro: $8/user/month
-> Enterprise: $15/user/month (SSO, audit logs)
-
-## Success Metrics
-
-How will you measure success?
-> - 1000 teams in 6 months
-> - 40% weekly active users
-> - <200ms message delivery
-> - NPS > 50
-
-## Constraints and Risks
-
-Technical constraints:
-> - Must support 10k concurrent users
-> - End-to-end encryption required
-
-Risks:
-> - Slack network effects
-> - Feature parity expectations
-
-Saving product brief to: docs/product-brief.md
-
-Product brief complete! Run /workflow-status for next steps.
-```
+There are **no Fibonacci story points, no velocity, and no burndown charts** in this plugin. Stories are sized to one developer-day. Progress is tracked by count (stories delivered vs. stories remaining). Sprint sequencing assigns dependency-ordered parallel waves, not capacity-constrained sprints.
 
 ---
 
-## Phase 2 - Planning Commands
+## Skill Detail
 
-<h3 id="prd">/prd</h3>
+<h3 id="bmad-help">bmad-help</h3>
 
-Create a Product Requirements Document with detailed functional requirements, user stories, and acceptance criteria.
+The orchestration spine. Reads the artifacts present in your workspace and routes you to the next appropriate skill. Use this any time you are unsure what to do next.
 
-**When to use:** Level 2+ projects after product brief
+**Auto-invoked:** Yes — Claude calls this at the start of planning sessions.
 
-**Output:** `docs/prd.md`
-
-**Prerequisite:** `docs/product-brief.md`
-
-**Subagent Execution:** This command uses parallel subagents to generate different PRD sections simultaneously (Functional Requirements, Non-Functional Requirements, Epics & Stories, Dependencies), significantly speeding up document creation.
-
-#### Example
-
-```
-User: /prd
-
-Claude: I'll create a PRD based on your product brief.
-
-Loading: docs/product-brief.md
-
-## Functional Requirements
-
-### FR-001: User Authentication
-Users can register, login, and manage their accounts.
-
-**Acceptance Criteria:**
-- [ ] Email/password registration
-- [ ] OAuth (Google, GitHub)
-- [ ] Email verification
-- [ ] Password reset flow
-- [ ] 2FA support
-
-### FR-002: Real-time Messaging
-Users can send and receive messages instantly.
-
-**Acceptance Criteria:**
-- [ ] Text messages with markdown support
-- [ ] Message delivery <200ms
-- [ ] Typing indicators
-- [ ] Read receipts
-- [ ] Message editing and deletion
-- [ ] Thread replies
-
-### FR-003: Channels and DMs
-Users can communicate in channels or direct messages.
-
-**Acceptance Criteria:**
-- [ ] Create public/private channels
-- [ ] Channel topics and descriptions
-- [ ] Direct messages (1:1 and group)
-- [ ] Channel member management
-- [ ] Channel archiving
-
-### FR-004: Code Sharing
-Developers can share code with syntax highlighting.
-
-**Acceptance Criteria:**
-- [ ] Code blocks with language detection
-- [ ] Syntax highlighting for 50+ languages
-- [ ] Line numbers
-- [ ] Copy button
-- [ ] Expandable for long snippets
-
-### FR-005: Search
-Users can search messages and files.
-
-**Acceptance Criteria:**
-- [ ] Full-text message search
-- [ ] Filter by channel/user/date
-- [ ] Search within code blocks
-- [ ] Search suggestions
-
-### FR-006: Notifications
-Users receive timely notifications.
-
-**Acceptance Criteria:**
-- [ ] Desktop notifications
-- [ ] Mobile push notifications
-- [ ] @mention highlighting
-- [ ] Custom notification schedules
-- [ ] Do not disturb mode
-
-## Non-Functional Requirements
-
-### NFR-001: Performance
-- Message delivery: <200ms P99
-- Search results: <500ms
-- App load time: <3s
-- Support 10k concurrent users per server
-
-### NFR-002: Security
-- End-to-end encryption option
-- SOC 2 compliance path
-- Data residency options
-- Audit logging for enterprise
-
-### NFR-003: Scalability
-- Horizontal scaling for message service
-- Sharded database for messages
-- CDN for file attachments
-
-### NFR-004: Availability
-- 99.9% uptime SLA
-- Multi-region deployment
-- Automated failover
-
-## Epics and User Stories
-
-### Epic 1: User Management
-
-**STORY-001: User Registration**
-As a new user, I want to create an account so I can join my team's workspace.
-
-Points: 5 | Priority: Must
-
-Acceptance Criteria:
-- Register with email/password
-- Validate email format
-- Password strength requirements
-- Email verification sent
-- Redirect to workspace setup
-
-**STORY-002: OAuth Login**
-As a user, I want to login with Google/GitHub so I don't need another password.
-
-Points: 5 | Priority: Must
-
-**STORY-003: Two-Factor Authentication**
-As a security-conscious user, I want to enable 2FA to protect my account.
-
-Points: 5 | Priority: Should
-
-### Epic 2: Messaging
-
-**STORY-004: Send Message**
-As a user, I want to send messages so I can communicate with my team.
-
-Points: 3 | Priority: Must
-
-**STORY-005: Real-time Updates**
-As a user, I want to see new messages instantly without refreshing.
-
-Points: 8 | Priority: Must
-
-**STORY-006: Message Threading**
-As a user, I want to reply in threads to keep discussions organized.
-
-Points: 5 | Priority: Must
-
-[... continued for all stories]
-
-## Prioritization (MoSCoW)
-
-### Must Have (MVP)
-- FR-001: Authentication (basic)
-- FR-002: Real-time messaging
-- FR-003: Channels and DMs
-- FR-004: Code sharing
-- FR-006: Notifications (desktop)
-
-### Should Have
-- FR-001: 2FA
-- FR-005: Search
-- FR-006: Mobile notifications
-- Voice calls
-
-### Could Have
-- Video calls
-- Screen sharing
-- Custom workflows
-
-### Won't Have (this release)
-- Self-hosting
-- Mobile apps
-- API marketplace
-
-## Summary
-
-- **Total epics:** 6
-- **Total stories:** 28
-- **Total points:** 142
-- **Must-have points:** 89
-- **Estimated MVP sprints:** 4 (at 25 pts/sprint)
-
-Saving PRD to: docs/prd.md
-```
+**Output:** Status display; no file written.
 
 ---
 
-<h3 id="tech-spec">/tech-spec</h3>
+<h3 id="bmad-init">bmad-init</h3>
 
-Create a lightweight technical specification for Level 0-1 projects. Simpler than a full PRD.
+Initializes the planning workspace. Interactively selects a track (Quick Flow / BMad Method / Enterprise), creates `config.yaml`, `decision-log.md`, and `project-context.md`. Can also be called with an Update intent to promote a track.
 
-**When to use:** Level 0-1 projects (small features, bug fixes)
+**Auto-invoked:** Yes — on first planning interaction in a new workspace.
 
-**Output:** `docs/tech-spec.md`
-
-**Prerequisite:** `/workflow-init`
-
-#### Example
-
-~~~~
-User: /tech-spec
-
-Claude: I'll create a tech spec for your project.
-
-## Feature Overview
-
-What are you building?
-> Add password reset functionality to existing auth system
-
-## Requirements
-
-List the core requirements:
-> 1. User requests reset via email
-> 2. System sends reset link (expires in 1 hour)
-> 3. User clicks link and sets new password
-> 4. Old sessions are invalidated
-
-## Technical Details
-
-### Files to Modify/Create
-
-1. `src/routes/auth.js` - Add reset endpoints
-2. `src/services/email.js` - Reset email template
-3. `src/models/PasswordReset.js` - Reset token model
-4. `tests/auth.test.js` - Test coverage
-
-### API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | /auth/forgot-password | Request reset email |
-| GET | /auth/reset-password/:token | Validate token |
-| POST | /auth/reset-password/:token | Set new password |
-
-### Data Model
-
-```javascript
-// PasswordReset model
-{
-  userId: ObjectId,
-  token: String (hashed),
-  expiresAt: Date,
-  used: Boolean
-}
-```
-
-### Email Template
-
-Subject: "Reset your password"
-Body: "Click here to reset: {reset_link}"
-Expiration note: "This link expires in 1 hour"
-
-## Acceptance Criteria
-
-- [ ] Request reset with valid email sends reset email
-- [ ] Request with invalid email shows generic success (security)
-- [ ] Token valid for 1 hour
-- [ ] Token can only be used once
-- [ ] Password meets strength requirements
-- [ ] All existing sessions invalidated after reset
-- [ ] Unit tests pass with >80% coverage
-
-## Dependencies
-
-- Existing: nodemailer, bcrypt
-- New: none
-
-## Estimated Effort
-
-2-3 points (half day to one day)
-
-Saving tech spec to: docs/tech-spec.md
-~~~~
+**Output:** `bmad-output/config.yaml`, `bmad-output/decision-log.md`, `bmad-output/project-context.md`
 
 ---
 
-<h3 id="create-ux-design">/create-ux-design</h3>
+<h3 id="bmad-brainstorm">bmad-brainstorm</h3>
 
-Create UX designs including user flows, wireframes, and design system specifications.
+Structured ideation session using techniques such as SCAMPER, SWOT, 5 Whys, and Six Thinking Hats. Parallel subagents apply different frameworks simultaneously for diverse perspective coverage.
 
-**When to use:** Level 2+ projects with user interfaces
-
-**Output:** `docs/ux-design.md`
-
-**Prerequisite:** `docs/prd.md`
-
-#### Example
-
-~~~~
-User: /create-ux-design
-
-Claude: I'll create UX designs for Real-time Chat Application.
-
-Loading: docs/prd.md
-
-## User Personas
-
-### Primary: Sarah - Senior Developer
-- 32 years old, remote worker
-- Uses Slack, VS Code, GitHub daily
-- Frustrated by context switching
-- Values keyboard shortcuts and speed
-
-### Secondary: Mike - Engineering Manager
-- 45 years old, manages 12 developers
-- Needs visibility into team communication
-- Cares about security and compliance
-
-## User Flows
-
-### Flow 1: Onboarding
-```
-Sign Up → Verify Email → Create Workspace → Invite Team → Tutorial → Dashboard
-```
-
-### Flow 2: Send Message
-```
-Open Channel → Type Message → Format (optional) → Send → Confirm Delivery
-```
-
-### Flow 3: Code Sharing
-```
-Type ``` → Select Language → Paste Code → Preview → Send
-```
-
-## Information Architecture
-
-```
-App
-├── Sidebar
-│   ├── Workspace Switcher
-│   ├── Search
-│   ├── Channels
-│   │   ├── Public
-│   │   └── Private
-│   ├── Direct Messages
-│   └── Settings
-├── Main Content
-│   ├── Channel Header
-│   ├── Message List
-│   └── Message Input
-└── Right Panel (contextual)
-    ├── Thread View
-    ├── User Profile
-    └── Channel Info
-```
-
-## Wireframes
-
-### Main Chat View
-```
-┌──────────────────────────────────────────┐
-│ [=] Search...                 [@] [⚙️]  │
-├────────────┬─────────────────────────────┤
-│ # general  │ # general                   │
-│ # random   │ ────────────────────────    │
-│ # dev      │ Sarah: Hey team, check out  │
-│            │ this PR: github.com/...     │
-│ DMs        │                             │
-│ @ Mike     │ Mike: LGTM! 👍              │
-│ @ Alex     │                             │
-│            │ Sarah: Thanks! Merging now  │
-│            │                             │
-│ ────────── │ ────────────────────────    │
-│ [+ Add]    │ [📎] Type message... [→]    │
-└────────────┴─────────────────────────────┘
-```
-
-### Code Snippet
-```
-┌─────────────────────────────┐
-│ javascript               📋 │
-├─────────────────────────────┤
-│ 1  function greet(name) {   │
-│ 2    return `Hello ${name}` │
-│ 3  }                        │
-└─────────────────────────────┘
-```
-
-## Design System
-
-### Colors
-```
-Primary:    #5865F2 (Blurple)
-Success:    #57F287 (Green)
-Warning:    #FEE75C (Yellow)
-Error:      #ED4245 (Red)
-Background: #36393F (Dark)
-Surface:    #2F3136 (Darker)
-Text:       #DCDDDE (Light)
-Muted:      #72767D (Gray)
-```
-
-### Typography
-```
-Headings: Inter, 600
-Body:     Inter, 400
-Code:     JetBrains Mono, 400
-
-Sizes:
-H1: 24px
-H2: 20px
-H3: 16px
-Body: 14px
-Small: 12px
-```
-
-### Spacing
-```
-4px  - Icon padding
-8px  - Small gaps
-12px - Component padding
-16px - Section gaps
-24px - Large sections
-```
-
-### Components
-
-1. **Button**
-   - Primary (filled blue)
-   - Secondary (outline)
-   - Danger (red)
-   - Ghost (text only)
-
-2. **Input**
-   - Text field
-   - Search with icon
-   - Message composer
-
-3. **Avatar**
-   - Sizes: 24px, 32px, 48px
-   - Status indicator (green/yellow/red/gray)
-
-4. **Message**
-   - User avatar + name + timestamp
-   - Message content
-   - Reactions bar
-   - Thread indicator
-
-5. **Code Block**
-   - Language label
-   - Copy button
-   - Line numbers
-   - Syntax highlighting
-
-## Accessibility (WCAG 2.1 AA)
-
-### Color Contrast
-- [x] Text/background: 7.2:1 (AAA)
-- [x] Interactive elements: 4.6:1 (AA)
-
-### Keyboard Navigation
-- [x] All interactive elements focusable
-- [x] Visible focus indicators
-- [x] Logical tab order
-- [x] Keyboard shortcuts documented
-
-### Screen Readers
-- [x] Semantic HTML structure
-- [x] ARIA labels for icons
-- [x] Live regions for new messages
-- [x] Alt text for images
-
-### Motion
-- [x] Respects prefers-reduced-motion
-- [x] No auto-playing animations
-
-## Responsive Breakpoints
-
-- Mobile: 320px - 767px
-- Tablet: 768px - 1023px
-- Desktop: 1024px+
-
-Mobile layout: Sidebar as overlay, single column
-Tablet: Collapsible sidebar
-Desktop: Full three-column layout
-
-Saving UX design to: docs/ux-design.md
-~~~~
+**Output:** `bmad-output/brainstorming-report.md`
 
 ---
 
-## Phase 3 - Solutioning Commands
+<h3 id="bmad-research">bmad-research</h3>
 
-<h3 id="architecture">/architecture</h3>
+Live, web-sourced research: market, competitive, domain, and technical. Produces a cited research report. Parallel subagents cover different research dimensions concurrently.
 
-Design the system architecture including components, data models, APIs, and technology choices.
-
-**When to use:** Level 2+ projects after PRD
-
-**Output:** `docs/architecture.md`
-
-**Prerequisite:** `docs/prd.md`
-
-**Subagent Execution:** This command uses parallel subagents to design major system components independently (Auth Service, Data Layer, API Layer, Frontend), ensuring comprehensive coverage of all architectural concerns.
-
-#### Example
-
-See the [System Architect skill documentation](../skills/#system-architect) for a complete architecture example.
+**Output:** `bmad-output/research-report.md`
 
 ---
 
-<h3 id="solutioning-gate-check">/solutioning-gate-check</h3>
+<h3 id="bmad-product-brief">bmad-product-brief</h3>
 
-Validate that the architecture addresses all requirements from the PRD.
+Guided discovery conversation (persona: Mary, Business Analyst). Produces a product brief covering problem space, target audience, competitive landscape, and business model. Supports Create / Update / Validate intents.
 
-**When to use:** After completing architecture, before sprint planning
-
-**Output:** Status display (no file)
-
-**Prerequisites:** `docs/prd.md`, `docs/architecture.md`
-
-#### Example
-
-```
-User: /solutioning-gate-check
-
-Claude: I'll validate your architecture against the PRD.
-
-Loading: docs/prd.md, docs/architecture.md
-
-## Functional Requirements Check
-
-| FR | Description | Addressed | Notes |
-|----|-------------|-----------|-------|
-| FR-001 | Authentication | ✓ | Auth service, JWT, OAuth |
-| FR-002 | Real-time messaging | ✓ | WebSocket service, Redis |
-| FR-003 | Channels/DMs | ✓ | Channel service |
-| FR-004 | Code sharing | ✓ | Message service + Prism.js |
-| FR-005 | Search | ✓ | Elasticsearch |
-| FR-006 | Notifications | ✓ | Push service, FCM |
-
-## Non-Functional Requirements Check
-
-| NFR | Requirement | Solution | Status |
-|-----|-------------|----------|--------|
-| NFR-001 | <200ms messages | WebSocket + Redis PubSub | ✓ |
-| NFR-001 | <500ms search | Elasticsearch | ✓ |
-| NFR-002 | E2E encryption | Signal protocol | ✓ |
-| NFR-003 | 10k users | Horizontal scaling, sharding | ✓ |
-| NFR-004 | 99.9% uptime | Multi-AZ, failover | ✓ |
-
-## Gap Analysis
-
-### Addressed
-All functional and non-functional requirements have corresponding
-architecture components.
-
-### Potential Concerns
-
-1. **Message ordering:** Architecture mentions "eventual consistency"
-   but FR-002 requires strict ordering. Consider:
-   - Vector clocks for ordering
-   - Single leader per channel
-
-2. **Search latency:** Elasticsearch is specified but indexing
-   strategy not detailed. Consider:
-   - Index message on write vs. async
-   - Partial word matching approach
-
-3. **File attachments:** FR-002 mentions file sharing but
-   architecture doesn't specify:
-   - Storage solution (S3?)
-   - CDN for delivery
-   - Virus scanning
-
-### Recommendations
-
-1. Add message ordering strategy to architecture
-2. Detail Elasticsearch indexing approach
-3. Add file attachment subsystem
-
-## Gate Status: CONDITIONAL PASS
-
-Address the 3 concerns above before proceeding to sprint planning.
-
-Would you like me to help update the architecture document?
-> Yes
-
-[Updates architecture.md with the missing details]
-
-Re-running gate check...
-
-Gate Status: PASS ✓
-
-Ready for /sprint-planning
-```
+**Output:** `bmad-output/product-brief.md`
 
 ---
 
-## Phase 4 - Implementation Commands
+<h3 id="bmad-prfaq">bmad-prfaq</h3>
 
-<h3 id="sprint-planning">/sprint-planning</h3>
+Amazon Working-Backwards press release + internal and external FAQs. Stress-tests the concept before a PRD is written.
 
-Break down the PRD into stories and plan sprint iterations.
-
-**When to use:** After architecture is complete
-
-**Output:** `docs/sprint-status.yaml`, `docs/stories/*.md`
-
-**Prerequisites:** `docs/prd.md`, `docs/architecture.md`
-
-**Subagent Execution:** This command uses parallel subagents to break down epics independently, with each agent creating detailed user stories for its assigned epic. This parallelization handles large backlogs efficiently.
-
-#### Example
-
-See the [Scrum Master skill documentation](../skills/#scrum-master) for a complete sprint planning example.
+**Output:** `bmad-output/prfaq.md`
 
 ---
 
-<h3 id="create-story">/create-story</h3>
+<h3 id="bmad-spec">bmad-spec</h3>
 
-Create a single user story with acceptance criteria and implementation notes.
+Five-field distiller: Problem, Capabilities, Constraints, Non-Goals, Success Metrics. Accepts any messy input (emails, notes, conversations) and extracts a clean `SPEC.md` kernel that feeds the PRD or tech-spec.
 
-**When to use:** Need to add a story outside of sprint planning
-
-**Output:** `docs/stories/STORY-XXX.md`
-
-#### Example
-
-```
-User: /create-story
-
-Claude: I'll help create a new user story.
-
-## Story Details
-
-What epic does this belong to?
-> Epic 2: Messaging
-
-Story title:
-> Message Reactions
-
-As a (user type):
-> team member
-
-I want to:
-> add emoji reactions to messages
-
-So that:
-> I can quickly acknowledge or respond without typing
-
-## Acceptance Criteria
-
-What conditions must be met?
-> - Can add any emoji as reaction
-> - Multiple users can add same reaction (shows count)
-> - Can remove own reaction
-> - Reactions show who added them on hover
-> - Real-time updates when others react
-
-## Technical Notes
-
-Any implementation considerations?
-> - Store reactions in separate collection
-> - Index by messageId
-> - Broadcast via WebSocket
-> - Limit to 20 unique emojis per message
-
-## Estimation
-
-Story points (Fibonacci: 1,2,3,5,8,13):
-> 5
-
-Priority (Must/Should/Could):
-> Should
-
-## Story Created
-
-```markdown
-# STORY-029: Message Reactions
-
-**Epic:** Messaging
-**Points:** 5
-**Priority:** Should
-**Status:** Pending
-
-## User Story
-As a team member, I want to add emoji reactions to messages
-so that I can quickly acknowledge or respond without typing.
-
-## Acceptance Criteria
-- [ ] Can add any emoji as reaction
-- [ ] Multiple users can add same reaction (shows count)
-- [ ] Can remove own reaction
-- [ ] Reactions show who added them on hover
-- [ ] Real-time updates when others react
-
-## Technical Notes
-- Store reactions in separate collection
-- Index by messageId
-- Broadcast via WebSocket
-- Limit to 20 unique emojis per message
-
-## Implementation
-[To be filled during development]
-```
-
-Saved to: docs/stories/STORY-029.md
-Updated: docs/sprint-status.yaml (added to backlog)
-```
+**Output:** `bmad-output/SPEC.md`
 
 ---
 
-<h3 id="dev-story">/dev-story</h3>
+<h3 id="bmad-document-project">bmad-document-project</h3>
 
-Implement a user story end-to-end with code and tests.
+Read-only brownfield codebase scan. Produces current-state documentation as the planning ground truth for an existing project. Does not write any application code.
 
-**When to use:** Ready to implement a story
-
-**Argument:** Story ID (e.g., `/dev-story STORY-004`)
-
-**Output:** Code files, updated story status
-
-**Subagent Execution:** For complex stories spanning multiple components, this command can use parallel subagents to implement backend, frontend, and test code simultaneously.
-
-#### Example
-
-See the [Developer skill documentation](../skills/#developer) for a complete implementation example.
+**Output:** `bmad-output/project-documentation.md`
 
 ---
 
-## Builder Commands
+<h3 id="bmad-prd">bmad-prd</h3>
 
-<h3 id="create-agent">/create-agent</h3>
+PRD facilitator (persona: John, Product Manager). Produces functional requirements (FR-### series), non-functional requirements (NFR-### series), a MoSCoW priority table, RICE scoring, and an epic outline. Supports Create / Update / Validate intents. Parallel subagents generate PRD sections concurrently.
 
-Create a custom BMAD skill for specialized domains.
+**Output:** `bmad-output/prd.md`, `bmad-output/prd-addendum.md`, updates to `bmad-output/decision-log.md`
 
-**When to use:** Need capabilities not covered by default skills
-
-**Output:** `~/.claude/skills/bmad-skills/custom-{skill-name}/SKILL.md`
-
-#### Example
-
-See the [Builder skill documentation](../skills/#builder) for a complete example.
+**Prerequisite:** `product-brief.md` (recommended) or direct input.
 
 ---
 
-<h3 id="create-workflow">/create-workflow</h3>
+<h3 id="bmad-tech-spec">bmad-tech-spec</h3>
 
-Create a custom workflow skill.
+Lightweight planning document for Quick Flow track (1–15 story scope). Combines problem statement, requirements, technical approach, and story list into a single document. Replaces PRD + architecture for small-scope work.
 
-**When to use:** Need a specialized workflow for your process
-
-**Output:** Custom skill in `~/.claude/skills/bmad-skills/` directory
-
-#### Example
-
-```
-User: /create-workflow
-
-Claude: I'll help create a custom workflow command.
-
-## Workflow Details
-
-Command name (without /):
-> security-review
-
-What does this workflow do?
-> Reviews code for security vulnerabilities and generates
-> a security report
-
-What inputs does it need?
-> - Files or directories to review
-> - Security checklist to use
-> - Output format (markdown/JSON)
-
-What outputs does it produce?
-> docs/security-review.md with findings
-
-What skills does it use?
-> Custom security-reviewer agent (or Developer)
-
-## Workflow Created
-
-```markdown
-# /security-review
-
-## Description
-Perform security review of code and generate findings report.
-
-## Usage
-/security-review [path] [--checklist=owasp|custom] [--format=md|json]
-
-## Workflow
-
-1. **Load configuration**
-   - Per helpers.md#Combined-Config-Load
-
-2. **Identify scope**
-   - If path provided, review that path
-   - Otherwise, review src/ directory
-
-3. **Load checklist**
-   - OWASP Top 10 (default)
-   - Or custom checklist from docs/security-checklist.md
-
-4. **Perform review**
-   - Static analysis patterns
-   - Dependency audit (npm audit)
-   - Secret scanning
-   - Input validation check
-
-5. **Generate report**
-   - Summary of findings
-   - Severity levels (Critical/High/Medium/Low)
-   - Remediation recommendations
-   - Code references
-
-6. **Save output**
-   - Save to docs/security-review.md (or .json)
-   - Update workflow status
-
-## Example Output
-
-# Security Review Report
-
-**Date:** 2025-01-15
-**Scope:** src/
-**Checklist:** OWASP Top 10
-
-## Summary
-- Critical: 1
-- High: 2
-- Medium: 5
-- Low: 8
-
-## Critical Findings
-
-### SQL-001: SQL Injection
-**File:** src/models/user.js:45
-**Risk:** Unsanitized user input in query
-**Fix:** Use parameterized queries
-```
-
-Saved to: ~/.claude/skills/bmad-skills/security-reviewer/SKILL.md
-
-Restart Claude Code to load the new skill.
-```
+**Output:** `bmad-output/tech-spec.md`
 
 ---
 
-## Creative Intelligence Commands
+<h3 id="bmad-ux">bmad-ux</h3>
 
-<h3 id="brainstorm">/brainstorm</h3>
+Two-document UX contract (persona: Sally, UX Designer). `DESIGN.md` covers the visual system (design tokens, component specs, WCAG 2.1 AA compliance). `EXPERIENCE.md` covers user journeys and interaction flows. Optional; only run if the project has a UI.
 
-Run a structured brainstorming session using multiple techniques.
+**Output:** `bmad-output/DESIGN.md`, `bmad-output/EXPERIENCE.md`
 
-**When to use:** Starting a project, stuck on a problem, exploring ideas
-
-**Output:** `docs/brainstorm-{topic}.md`
-
-**Subagent Execution:** When using multiple brainstorming techniques, this command can launch parallel subagents to apply different frameworks simultaneously (SCAMPER, Mind Mapping, Six Thinking Hats), providing diverse perspectives.
-
-#### Example
-
-See the [Creative Intelligence skill documentation](../skills/#creative-intelligence) for a complete brainstorming example.
+**Prerequisite:** `prd.md`
 
 ---
 
-<h3 id="research">/research</h3>
+<h3 id="bmad-architecture">bmad-architecture</h3>
 
-Conduct comprehensive research on a topic.
+System architecture design (persona: Winston, Architect). Produces `architecture.md` with component boundaries, ADRs, an FR/NFR coverage matrix, and explicit API/data model/naming conventions. Architecture conventions are the primary mechanism for **semantic conflict prevention** in parallel development.
 
-**When to use:** Need market intelligence, competitive analysis, or technical research
+**Output:** `bmad-output/architecture.md`
 
-**Output:** `docs/research-{topic}.md`
-
-**Research types:**
-- Market research
-- Competitive analysis
-- Technical research
-- User research
-
-**Subagent Execution:** This command uses parallel subagents to conduct different research types simultaneously (market trends, competitive landscape, technical feasibility, user needs), gathering comprehensive insights quickly.
-
-#### Example
-
-See the [Creative Intelligence skill documentation](../skills/#creative-intelligence) for a complete research example.
+**Prerequisite:** `prd.md`
 
 ---
 
-## Command Cheatsheet
+<h3 id="bmad-epics-and-stories">bmad-epics-and-stories</h3>
 
-### Start a New Project
+Shards the PRD and architecture into an ordered `epics.md` and compiled, self-contained story context files (`{epic}.{story}.{slug}.story.md`, each approximately 8K tokens). Each story carries Dev Notes, Acceptance Criteria, a Testing strategy, Tasks/Subtasks, a Dependency Map, and an **Owned File/Module Scope**. The Owned File/Module Scope is the primary mechanism for preventing file and merge conflicts in parallel development. Acceptance Criteria, Dev Notes, and Testing sections are locked for dev tools.
+
+This is the last planning artifact the plugin produces before handoff.
+
+**Output:** `bmad-output/epics.md`, `bmad-output/stories/*.story.md`
+
+**Prerequisites:** `prd.md`, `architecture.md`
+
+---
+
+<h3 id="bmad-readiness-check">bmad-readiness-check</h3>
+
+Gate check before story compilation begins. Cross-references PRD requirements against architecture coverage and epic completeness. Returns a **PASS / CONCERNS / FAIL** verdict. CONCERNS is addressable; FAIL blocks progression until resolved.
+
+**Output:** `bmad-output/readiness-report-<project-slug>-<date>.md`
+
+**Prerequisites:** `prd.md`, `architecture.md`
+
+---
+
+<h3 id="bmad-sprint-planning">bmad-sprint-planning</h3>
+
+Sequences stories by dependency order and assigns them to parallel waves. Produces `sprint-status.yaml`. No story points, no velocity, no burndown — progress is tracked by story count.
+
+**Output:** `bmad-output/sprint-status.yaml`
+
+**Prerequisites:** `epics.md`, `stories/`
+
+---
+
+<h3 id="bmad-parallel-plan">bmad-parallel-plan</h3>
+
+Builds a dependency DAG and topologically sorts stories into conflict-free concurrent waves. Each wave specifies worktree branch names and merge order so a worktree-based dev runner can execute the wave in parallel without file conflicts.
+
+**Output:** `bmad-output/parallelization-plan.md`
+
+**Prerequisites:** `sprint-status.yaml`
+
+---
+
+<h3 id="bmad-handoff">bmad-handoff</h3>
+
+Emits the final plugin artifact: `handoff-manifest.json`, a stable versioned schema listing each ready story, its owned scope, its wave/parallel-set, and its dependencies. Any external dev tool or autonomous runner can consume this file directly.
+
+**Output:** `bmad-output/handoff-manifest.json`
+
+---
+
+<h3 id="bmad-correct-course">bmad-correct-course</h3>
+
+Mid-stream scope or architecture change handler. Applies minimum-blast-radius re-planning: determines which downstream artifacts are affected and re-runs only those phases. Routes to `bmad-epics-and-stories`, `bmad-sprint-planning`, or `bmad-parallel-plan` as needed. Never re-codes.
+
+---
+
+<h3 id="bmad-investigate">bmad-investigate</h3>
+
+Forensic bug triage. Grades evidence (A/B/C confidence), ranks hypotheses, and produces an investigation case file. Optionally emits a fix story for dev handoff.
+
+**Output:** `bmad-output/investigation-*.md`, optional `stories/*.story.md`
+
+---
+
+<h3 id="bmad-builder">bmad-builder</h3>
+
+Meta-skill for extending the plugin. Scaffolds and validates new planning and orchestration skills. Enforces the scope law — builder skills created here must stay within planning/orchestration and must not generate application code.
+
+---
+
+## Migration Map: Old Slash Commands to Skills
+
+If you used the previous slash-command interface, this table shows the equivalent plugin skill.
+
+| Old slash command | New plugin skill | Notes |
+|-------------------|-----------------|-------|
+| `/workflow-init` | `bmad-init` | Now includes interactive track selection (Quick Flow / BMad Method / Enterprise) instead of numbered levels |
+| `/workflow-status` | `bmad-help` | Same routing function; now reads artifact state rather than a status file |
+| `/product-brief` | `bmad-product-brief` | Identical purpose; namespaced |
+| `/prd` | `bmad-prd` | Same document shape; no Fibonacci points in output |
+| `/tech-spec` | `bmad-tech-spec` | Now Quick Flow track only |
+| `/create-ux-design` | `bmad-ux` | Now emits two documents: `DESIGN.md` + `EXPERIENCE.md` |
+| `/architecture` | `bmad-architecture` | Now explicitly produces ADRs and an FR/NFR coverage matrix |
+| `/solutioning-gate-check` | `bmad-readiness-check` | PASS / CONCERNS / FAIL verdict (same function) |
+| `/sprint-planning` | `bmad-sprint-planning` | No points or velocity; count-based, wave-ordered |
+| `/create-story` | `bmad-epics-and-stories` | Stories are now compiled context objects with Owned File/Module Scope |
+| `/dev-story` | **Not in this plugin** | Implementation is handled by external dev tools consuming `handoff-manifest.json` |
+| `/brainstorm` | `bmad-brainstorm` | Namespaced |
+| `/research` | `bmad-research` | Namespaced |
+| `/create-agent` | `bmad-builder` | Now scoped to planning/orchestration skills only |
+| `/create-workflow` | `bmad-builder` | Consolidated into builder |
+| *(new)* | `bmad-prfaq` | Working-Backwards PR/FAQ — no prior equivalent |
+| *(new)* | `bmad-spec` | Five-field SPEC.md kernel — no prior equivalent |
+| *(new)* | `bmad-parallel-plan` | Dependency DAG + wave planning — no prior equivalent |
+| *(new)* | `bmad-handoff` | Handoff manifest for dev tools — no prior equivalent |
+| *(new)* | `bmad-correct-course` | Mid-stream re-planning — no prior equivalent |
+| *(new)* | `bmad-investigate` | Forensic triage — no prior equivalent |
+| *(new)* | `bmad-document-project` | Brownfield documentation — no prior equivalent |
+
+---
+
+## Typical Flows by Track
+
+### Quick Flow
+
 ```
-/workflow-init
-/product-brief      # Level 2+
-/prd               # Level 2+
-  OR
-/tech-spec         # Level 0-1
-/architecture      # Level 2+
-/sprint-planning
-/dev-story STORY-001
+bmad-init  →  bmad-spec (optional)  →  bmad-tech-spec
+          →  bmad-epics-and-stories  →  bmad-handoff
 ```
 
-### Check Status
+### BMad Method
+
 ```
-/workflow-status
+bmad-init  →  bmad-product-brief (optional)  →  bmad-prd
+          →  bmad-architecture  →  bmad-ux (if UI)
+          →  bmad-readiness-check (gate)
+          →  bmad-epics-and-stories  →  bmad-sprint-planning
+          →  bmad-parallel-plan (optional)  →  bmad-handoff
 ```
 
-### Research First
-```
-/brainstorm
-/research
-/product-brief
-```
+### Enterprise
 
-### Create Custom Tools
-```
-/create-agent
-/create-workflow
-```
+Everything in BMad Method, plus security and DevOps planning addenda added after `bmad-architecture` and before `bmad-readiness-check`.
 
 ---
 
 ## Next Steps
 
-- See [real-world examples](../examples/) of complete workflows
-- Learn about [configuration options](../configuration)
-- Check [troubleshooting](../troubleshooting) for common issues
+- See [getting started](../getting-started) for installation and first-run instructions
+- See [subagent patterns](../subagent-patterns) for how parallel planning agents are coordinated
+- See [examples](../examples/) for complete end-to-end planning walkthroughs
+
+---
+
+> The **BMAD Method** is created and maintained by the [BMAD Code Organization](https://github.com/bmad-code-org/BMAD-METHOD). This plugin is an independent Claude Code harness for the method's planning and orchestration workflows. No endorsement is implied. All methodology credit belongs to the BMAD Code Organization.

@@ -1,6 +1,7 @@
 # Site settings
-title: "BMAD Method for Claude Code"
-description: "A complete agile development methodology converted to Claude Code native skills, commands, and workflows. Transform Claude Code into a full-featured agile development environment."
+title: "BMAD Planning & Orchestrator"
+description: "A Claude Code plugin marketplace plugin that harnesses the BMAD Method for planning, roadmapping, and conflict-free parallel orchestration — then hands the work off to your dev tools. It plans and orchestrates. It never writes the code."
+tagline: "Plan it right. Hand it off. Let your dev tools build."
 baseurl: "/claude-code-bmad-skills"
 url: "https://aj-geddes.github.io"
 
@@ -10,7 +11,7 @@ twitter:
   card: summary_large_image
 
 social:
-  name: BMAD Method for Claude Code
+  name: BMAD Planning & Orchestrator
   links:
     - https://github.com/aj-geddes/claude-code-bmad-skills
     - https://github.com/bmad-code-org/BMAD-METHOD
@@ -29,7 +30,6 @@ highlighter: rouge
 header_pages:
   - getting-started.md
   - skills/index.md
-  - commands/index.md
   - subagent-patterns.md
   - examples/index.md
 
@@ -44,9 +44,6 @@ collections:
   skills:
     output: true
     permalink: /skills/:name/
-  commands:
-    output: true
-    permalink: /commands/:name/
   examples:
     output: true
     permalink: /examples/:name/
@@ -61,11 +58,6 @@ defaults:
   - scope:
       path: ""
       type: "skills"
-    values:
-      layout: "default"
-  - scope:
-      path: ""
-      type: "commands"
     values:
       layout: "default"
   - scope:
@@ -92,16 +84,16 @@ logo: /assets/images/bmad-logo.png
 keywords:
   - Claude Code
   - BMAD Method
-  - agile development
-  - AI-assisted development
-  - Claude Code skills
-  - Claude Code commands
+  - BMAD Planning Orchestrator
+  - Claude Code plugin
+  - agile planning
+  - AI-assisted planning
+  - parallel orchestration
+  - conflict-free parallel development
   - product requirements
   - system architecture
   - sprint planning
-  - AI pair programming
-  - software development methodology
-  - parallel subagents
-  - Claude subagent architecture
+  - handoff manifest
   - AI agent orchestration
-  - 200K token context
+  - upstream planning
+  - wave-based parallelism

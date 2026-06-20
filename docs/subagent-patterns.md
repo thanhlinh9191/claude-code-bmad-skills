@@ -1,615 +1,297 @@
 ---
 layout: default
-title: "Subagent Patterns - Parallel Execution Architecture"
-description: "Learn how BMAD Skills use parallel subagents to maximize Claude's context (up to 1M tokens on Sonnet/Opus 4.6). Patterns for research, document generation, and implementation."
-keywords: "BMAD subagents, parallel execution, Claude Code agents, task parallelization"
+title: "Planning Fan-Out & Parallel Workstreams"
+description: "How the BMAD Planning & Orchestrator plugin fans out planning work across three subagents (story-author, epic-scoper, readiness-auditor), how parallel WORKSTREAM planning differs from running dev agents, and how conflict-free wave design hands off to external dev tools."
+keywords: "BMAD subagents, planning fan-out, parallel workstreams, story-author, epic-scoper, readiness-auditor, conflict-free waves"
 ---
 
-# Subagent Patterns - Parallel Execution Architecture
+# Planning Fan-Out & Parallel Workstreams
 
-BMAD Skills leverage Claude Code's subagent architecture to execute complex workflows in parallel. Each subagent gets its own context window (up to 1M tokens on Claude Sonnet 4.6 and Opus 4.6), enabling massive parallelization of research, document generation, and implementation tasks.
+The **BMAD Planning & Orchestrator** plugin is a Claude Code plugin that implements the **BMAD Method** for planning and orchestration. It fans out planning work across three specialized subagents, then produces conflict-free wave plans that external dev tools can execute in parallel. The plugin plans. It never writes code, runs tests, lints, checks coverage, or reviews diffs.
 
----
-
-## Core Principle
-
-**Never do sequentially what can be done in parallel.**
-
-Each BMAD skill decomposes its work into independent subtasks that can be executed by parallel subagents, then synthesizes the results. This approach dramatically reduces workflow execution time while maximizing the use of Claude's extensive context capabilities.
+> **Attribution:** The BMAD Method (Breakthrough Method for Agile AI-Driven Development) belongs to the [BMAD Code Organization](https://github.com/bmad-code-org/BMAD-METHOD). This plugin is an independent Claude Code harness — not an official BMAD product and no endorsement is implied. All methodology credit belongs to the BMAD Code Organization.
 
 ---
 
-## Subagent Types
+## Install
 
-BMAD skills use four subagent types via the `Task` tool:
+```text
+/plugin marketplace add aj-geddes/claude-code-bmad-skills
+/plugin install bmad-planning-orchestrator@bmad-method-harness
+/reload-plugins
+```
 
-| Subagent Type | Model | Tools | Best For |
-|---------------|-------|-------|----------|
-| **general-purpose** | Inherits | All tools | Research, implementation, analysis |
-| **Explore** | Haiku | Read, Grep, Glob (read-only) | Fast codebase exploration |
-| **Plan** | Inherits | Read-only tools | Architecture planning, design decisions |
-| **Bash** | Inherits | Bash only | Terminal commands in isolation |
+Local dev / testing:
 
-Use `Explore` for fast, cheap codebase queries. Use `general-purpose` for substantive work. Use `Bash` when you need only shell execution.
+```text
+claude --plugin-dir ./bmad-planning-orchestrator
+```
 
-### Standard Invocation
-
-All subagents are invoked using the `Task` tool with:
-- `subagent_type`: "general-purpose" (or "Explore", "Plan", "Bash")
-- `run_in_background`: true (for parallel execution)
-- `prompt`: Detailed, self-contained task description
+Skills are namespaced `/bmad-planning-orchestrator:<skill>` and most auto-invoke based on what you are doing. See [Getting Started](getting-started.md) for the full walkthrough.
 
 ---
 
-## Parallel Execution Patterns
+## What "fan-out" means here
 
-### Pattern 1: Fan-Out Research
+The plugin does not fan out to run many dev agents simultaneously. It fans out to **plan** simultaneously. The distinction matters:
 
-When gathering information from multiple independent sources.
+| Fan-out type | What runs in parallel | Output |
+|--------------|-----------------------|--------|
+| **Planning fan-out** (this plugin) | Planning subagents drafting epics, stories, audit reports | `*.story.md` files, scope manifests, audit verdicts |
+| **Dev execution fan-out** (external) | Dev tools building stories in isolated git worktrees | Implemented code on `story/*` branches |
 
-```
-┌─────────────────┐
-│  Main Context   │
-└────────┬────────┘
-         │ Launch parallel agents
-    ┌────┴────┬────────┬────────┐
-    ▼         ▼        ▼        ▼
-┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐
-│Agent 1│ │Agent 2│ │Agent 3│ │Agent 4│
-│Market │ │Compet.│ │Tech   │ │User   │
-│Research│ │Analysis│ │Research│ │Research│
-└───┬───┘ └───┬───┘ └───┬───┘ └───┬───┘
-    │         │        │        │
-    └────┬────┴────────┴────────┘
-         ▼
-┌─────────────────┐
-│  Synthesize     │
-│  Results        │
-└─────────────────┘
-```
-
-**Example Use Case:** Business Analyst researching a product
-- **Agent 1:** Market size and trends
-- **Agent 2:** Competitive landscape
-- **Agent 3:** Technical feasibility
-- **Agent 4:** User needs analysis
-
-**When to Use:**
-- Multiple independent research domains
-- Gathering diverse perspectives
-- No dependencies between tasks
-- Each task requires significant context
+The plugin's job ends when it emits `ready-for-dev` story files and a `handoff-manifest.json`. Everything after that handoff — running dev agents, managing worktrees, merging branches, running tests — belongs to your external dev tooling.
 
 ---
 
-### Pattern 2: Parallel Section Generation
+## The three planning subagents
 
-When creating multi-section documents where sections are independent.
+The plugin ships three subagents that the orchestrating skills (`bmad-epics-and-stories`, `bmad-readiness-check`) spawn in parallel during the Solutioning and Implementation-Handoff phases.
 
-```
-┌─────────────────┐
-│  Gather Context │
-│  (shared info)  │
-└────────┬────────┘
-         │ Launch parallel agents with shared context
-    ┌────┴────┬────────┬────────┐
-    ▼         ▼        ▼        ▼
-┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐
-│Section│ │Section│ │Section│ │Section│
-│   1   │ │   2   │ │   3   │ │   4   │
-└───┬───┘ └───┬───┘ └───┬───┘ └───┬───┘
-    │         │        │        │
-    └────┬────┴────────┴────────┘
-         ▼
-┌─────────────────┐
-│  Assemble Doc   │
-└─────────────────┘
-```
+### story-author
 
-**Example Use Case:** Product Manager creating PRD
-- **Agent 1:** Functional Requirements section
-- **Agent 2:** Non-Functional Requirements section
-- **Agent 3:** Epics and User Stories
-- **Agent 4:** Dependencies and Constraints
+**Role:** Compiles one story file as a fully source-cited context object.
 
-**When to Use:**
-- Large document generation
-- Sections are logically independent
-- Shared requirements context
-- Each section is substantial (1K+ tokens)
+The `story-author` subagent receives a single story assignment (epic number, story number, slug, and a shared sharding-context path written by the orchestrator before fan-out). It reads the planning corpus — PRD, architecture document, UX design if present, and completed sibling stories — and produces one `{epic}.{story}.{slug}.story.md` that is self-contained at roughly 8K tokens.
 
----
+Every claim in Dev Notes carries a source citation back to the planning documents (`[Source: architecture.md#auth-service]`, `[Source: prd.md#FR-12]`). Inferences not found verbatim in source documents are labeled `[Inference]`. The story-author sets status to `backlog` and stops. Marking a story `ready-for-dev` is the orchestrator's job after the scope-conflict check passes.
 
-### Pattern 3: Component Parallel Design
+**What it never does:** writes application code, runs tests, lints, executes shell commands, modifies planning documents, or coordinates with sibling story agents.
 
-When designing system components that interact but can be designed independently.
+**Fan-out pattern:**
 
 ```
-┌─────────────────┐
-│  Load PRD/NFRs  │
-│  Define Scope   │
-└────────┬────────┘
-         │ Each agent designs one component
-    ┌────┴────┬────────┬────────┐
-    ▼         ▼        ▼        ▼
-┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐
-│ Auth  │ │ Data  │ │  API  │ │  UI   │
-│Service│ │ Layer │ │ Layer │ │ Layer │
-└───┬───┘ └───┬───┘ └───┬───┘ └───┬───┘
-    │         │        │        │
-    └────┬────┴────────┴────────┘
-         ▼
-┌─────────────────┐
-│ Integration     │
-│ Architecture    │
-└─────────────────┘
-```
-
-**Example Use Case:** System Architect designing architecture
-- **Agent 1:** Authentication/Authorization design
-- **Agent 2:** Data layer and storage design
-- **Agent 3:** API layer design
-- **Agent 4:** Frontend architecture
-
-**When to Use:**
-- System has clear component boundaries
-- Components have defined interfaces
-- NFRs are known and documented
-- Components can be designed in isolation
-
----
-
-### Pattern 4: Story Parallel Implementation
-
-When implementing multiple independent user stories.
-
-```
-┌─────────────────┐
-│  Sprint Plan    │
-│  Story Queue    │
-└────────┬────────┘
-         │ Independent stories in parallel
-    ┌────┴────┬────────┬────────┐
-    ▼         ▼        ▼        ▼
-┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐
-│STORY-1│ │STORY-2│ │STORY-3│ │STORY-4│
-│Backend│ │Backend│ │Frontend│ │Tests │
-└───┬───┘ └───┬───┘ └───┬───┘ └───┬───┘
-    │         │        │        │
-    └────┬────┴────────┴────────┘
-         ▼
-┌─────────────────┐
-│ Integration &   │
-│ Verification    │
-└─────────────────┘
-```
-
-**Example Use Case:** Developer implementing sprint stories
-- **Agent 1:** STORY-001 backend implementation
-- **Agent 2:** STORY-002 backend implementation
-- **Agent 3:** STORY-003 frontend implementation
-- **Agent 4:** Integration test suite
-
-**When to Use:**
-- Stories have no blocking dependencies
-- Stories touch different files/components
-- Each story is substantial (5+ points)
-- Sprint has multiple independent stories
-
----
-
-## Subagent Prompt Template
-
-Each subagent prompt should be self-contained with all necessary context:
-
-```markdown
-## Task: [Specific Task Name]
-
-## Context
-[Provide all necessary context - the subagent cannot see main conversation]
-- Project: {{project_name}}
-- Phase: {{current_phase}}
-- Related docs: [list paths to read]
-
-## Objective
-[Clear, specific goal for this subagent]
-
-## Constraints
-- [Any limitations or requirements]
-- Output format: [specify expected output]
-
-## Deliverables
-1. [Specific deliverable 1]
-2. [Specific deliverable 2]
-
-## Output Location
-Write results to: [specific file path]
-```
-
-### Example Prompt
-
-```markdown
-## Task: Conduct competitive analysis for mobile payment product
-
-## Context
-Read bmad/context/discovery-brief.md for problem statement and target market
-
-## Objective
-Identify competitors, analyze features, pricing, and positioning
-
-## Constraints
-- Focus on mobile payment space
-- Target small business segment
-- Use WebSearch for current market data
-- Include sources for all findings
-
-## Deliverables
-1. List of 5-8 direct competitors with profiles
-2. Feature comparison matrix
-3. Pricing analysis and market positioning
-4. Gap analysis and differentiation opportunities
-5. Key insights and recommendations
-
-## Output Location
-Write findings to: bmad/outputs/competitive-analysis.md
+bmad-epics-and-stories (orchestrator)
+  │
+  ├── Write sharding-context.md  (shared context for all agents)
+  │
+  ├── story-author [Epic 1, Story 1]  ──▶  1.1.slug.story.md (backlog)
+  ├── story-author [Epic 1, Story 2]  ──▶  1.2.slug.story.md (backlog)
+  ├── story-author [Epic 2, Story 1]  ──▶  2.1.slug.story.md (backlog)
+  └── story-author [Epic 2, Story 2]  ──▶  2.2.slug.story.md (backlog)
+        │
+        ▼  (all agents return)
+  Scope-conflict check across ALL stories
+        │
+        ▼  (clean)
+  Mark stories ready-for-dev
 ```
 
 ---
 
-## Coordination Strategies
+### epic-scoper
 
-### Shared Context via Files
+**Role:** Scopes one epic into an ordered story list with mutually disjoint Owned File/Module Scope boundaries.
 
-Before launching parallel agents, write shared context to a file:
+Before `story-author` agents can compile story files, someone must decide which stories exist and what files each story is allowed to touch. That is the `epic-scoper`'s job. It receives one epic's requirements slice from the PRD, the architecture document, and any already-scoped epics (to avoid cross-epic path collisions), and it produces a scoping manifest — a JSON file listing story titles, one-line intents, proposed Owned File/Module Scopes, dependency order, and a sizing verdict per story.
 
-**Standard Pattern:**
-1. Write shared context to `bmad/context/current-task.md`
-2. Launch agents that read from this file
-3. Each agent writes output to `bmad/outputs/agent-{n}.md`
-4. Main context synthesizes all outputs
+The epic-scoper applies the same sizing rule as everything else in the plugin: a story must fit one dev-day (roughly 2-8 hours). If a candidate story is too large, the scoper splits it and documents the split reasoning in the manifest. The orchestrator then fans out `story-author` agents using the manifest.
 
-**Example Context File Structure:**
+**What it never does:** writes story files (that is the story-author's job), writes application code, runs tests, or modifies any source planning document.
 
-```markdown
-# Project Context: E-commerce Platform
+**Fan-out pattern:**
 
-## Project Info
-- Name: E-commerce Platform
-- Type: web-app
-- Level: 2 (Medium)
+```
+bmad-epics-and-stories (orchestrator)
+  │
+  ├── epic-scoper [Epic 1 requirements slice]  ──▶  epic-1-scope.json
+  ├── epic-scoper [Epic 2 requirements slice]  ──▶  epic-2-scope.json
+  └── epic-scoper [Epic 3 requirements slice]  ──▶  epic-3-scope.json
+        │
+        ▼  (all scoping manifests returned)
+  Cross-epic scope overlap check
+        │
+        ▼  (clean)
+  Fan out story-author agents from manifests
+```
 
-## Requirements Summary
-[Key requirements relevant to all agents]
+The key output of the epic-scoper is precise, path-specific Owned File/Module Scope declarations. These are the lever that makes parallel dev safe later: stories with non-overlapping scopes can run simultaneously in separate git worktrees without file/merge conflicts.
 
-## Architectural Constraints
-[Technical constraints to consider]
+---
 
-## Success Criteria
-[What defines success for this task]
+### readiness-auditor
+
+**Role:** Independently audits one artifact domain (requirements, architecture, or stories) and returns a structured PASS / CONCERNS / FAIL verdict.
+
+The `readiness-auditor` is spawned by `bmad-readiness-check` in parallel — one auditor per artifact domain — so that requirements, architecture, and stories are all reviewed simultaneously rather than sequentially. Each auditor applies a fixed checklist against its assigned domain and returns an honest verdict without softening findings. The orchestrating skill merges the verdicts and computes the overall gate result.
+
+Audit domains:
+
+| Domain | What is checked |
+|--------|----------------|
+| **requirements** | FR completeness, verifiability, NFR presence, absence of contradictions, traceability readiness |
+| **architecture** | Pattern justification, component boundaries, FR/NFR coverage, module boundary quality for parallel dev safety |
+| **stories** | Required sections, AC count (≤7), every Task maps to an AC, Dev Notes citations, Owned Scope non-empty, LOCKED comments present, Dev Agent Record empty |
+| **full-corpus** | All three domains in one combined report |
+
+Verdict thresholds mirror the readiness-check gate: ≥90% pass rate is PASS, 80-89% is CONCERNS (proceed with caution), below 80% or any unmitigated FAIL item blocks the workflow.
+
+**What it never does:** writes application code, runs tests, modifies any planning artifact, or negotiates findings. It reads and reports.
+
+**Fan-out pattern:**
+
+```
+bmad-readiness-check (orchestrator)
+  │
+  ├── readiness-auditor [domain: requirements]  ──▶  audit-requirements-{date}.md
+  ├── readiness-auditor [domain: architecture]  ──▶  audit-architecture-{date}.md
+  └── readiness-auditor [domain: stories]       ──▶  audit-stories-{date}.md
+        │
+        ▼  (all verdicts returned)
+  Merge verdicts (strictest domain wins)
+        │
+        ▼
+  Overall PASS / CONCERNS / FAIL
+  Write readiness-report.md
 ```
 
 ---
 
-### Dependency Management
+## How parallel WORKSTREAM planning works
 
-For tasks with dependencies, use phased parallel execution:
+Parallel workstream planning — via `bmad-parallel-plan` — is not about running dev agents. It is about computing which stories can safely be developed at the same time and in what order they should merge. The skill produces a `parallelization-plan.md` that your dev tool consumes.
 
-```
-Phase 1 (Parallel):     Agent A, Agent B, Agent C
-                              │
-                        Wait for all
-                              │
-Phase 2 (Parallel):     Agent D (needs A), Agent E (needs B,C)
-                              │
-                        Wait for all
-                              │
-Phase 3 (Sequential):   Final synthesis in main context
-```
+### The two conflict layers planning prevents
 
-**Example:** Architecture Design
-1. **Phase 1:** Parallel analysis of FRs and NFRs
-2. **Phase 2:** Parallel component design (needs requirements)
-3. **Phase 3:** Integration architecture (needs components)
+The BMAD Method distinguishes two classes of collision that can occur when multiple dev agents work simultaneously:
 
----
+| Layer | What collides | When it surfaces | Where prevented |
+|-------|--------------|------------------|-----------------|
+| **Semantic** | Behavior, contracts, shared invariants | Integration or production | Architecture (Solutioning phase) |
+| **File/Merge** | Source file bytes | `git merge` | Owned File/Module Scope + worktrees + ordered merges |
 
-### Result Collection
+Catching a conflict in a planning document costs one editing pass on one file. The same conflict caught after three stories are implemented costs reverting, re-implementing, updating LOCKED Dev Notes (which requires explicit user authorization), and re-running the conflict checker. **The BMAD Code Organization's rule of thumb: catching alignment in solutioning is approximately 10x cheaper than catching it mid-build.**
 
-Use the `TaskOutput` tool to collect results:
+### Semantic conflict prevention (architecture phase)
 
-```python
-# Pseudocode for result collection pattern
-agents = []
-agents.append(launch_agent("task 1", background=True))
-agents.append(launch_agent("task 2", background=True))
-agents.append(launch_agent("task 3", background=True))
+The `bmad-architecture` skill locks every cross-cutting decision into `architecture.md` before any story is written. The minimum required Architecture Decision Records (ADRs) for a BMad Method project cover API style and response envelope, data model, state management, naming conventions, authN/authZ model, and error/response conventions. A downstream dev agent can follow each ADR mechanically without making judgment calls that could collide with a sibling agent's assumptions.
 
-# Continue with other work while agents run
+### File/Merge conflict prevention (story scope + waves)
 
-# When ready, collect results
-for agent in agents:
-    result = get_agent_output(agent, block=True)
-    process(result)
-```
+Every story compiled by `bmad-epics-and-stories` declares an explicit `Owned File/Module Scope` section — a list of every path the story is permitted to create or modify. The scope-conflict checker (`scripts/scope-conflict-check.sh`) computes pairwise path intersections across all ready-for-dev stories. Any pair that shares a path must either be serialized with a Blocked-by dependency or re-sliced so their scopes are disjoint.
 
-**Best Practices:**
-- Launch all parallel agents before waiting for any
-- Use `block=False` to check progress without waiting
-- Use `block=True` when results are needed for next step
-- Handle partial failures gracefully
+### Wave assignment
 
----
+`bmad-parallel-plan` builds a dependency DAG from three conflict classes:
 
-## Skill-Specific Patterns
+- **Ordering edges** — epic order and per-story Blocked-by dependencies
+- **File-scope edges** — stories whose Owned File/Module Scopes intersect cannot share a wave
+- **Semantic edges** — stories that both touch a shared cross-cutting module (auth, config, DB schema, shared types) cannot share a wave
 
-Each BMAD skill defines its own subagent strategies:
-
-### Business Analyst
-
-| Workflow | Pattern | Agents | Purpose |
-|----------|---------|--------|---------|
-| **Product Discovery** | Fan-Out Research | 4 | Market/Competitive/Tech/User research |
-| **Product Brief** | Parallel Section Generation | 3 | Problem/Solution/Metrics sections |
-
-**Coordination:** Sequential interviews → Parallel research/generation
-
----
-
-### Product Manager
-
-| Workflow | Pattern | Agents | Purpose |
-|----------|---------|--------|---------|
-| **PRD Generation** | Parallel Section Generation | 4 | FR/NFR/Epics/Dependencies sections |
-| **Epic Prioritization** | Parallel Section Generation | N | RICE scoring per epic |
-| **Tech Spec** | Parallel Section Generation | 3 | Requirements/Approach/Testing |
-
-**Coordination:** Sequential gathering → Parallel generation
-
----
-
-### System Architect
-
-| Workflow | Pattern | Agents | Purpose |
-|----------|---------|--------|---------|
-| **Requirements Analysis** | Fan-Out Research | 2 | FR analysis, NFR analysis |
-| **Component Design** | Component Parallel Design | N | One per major component |
-| **NFR Mapping** | Parallel Section Generation | 6 | One per NFR category |
-
-**Coordination:** Parallel analysis → Sequential integration
-
----
-
-### Scrum Master
-
-| Workflow | Pattern | Agents | Purpose |
-|----------|---------|--------|---------|
-| **Epic Breakdown** | Parallel Section Generation | N | One per epic |
-| **Sprint Planning** | Parallel Section Generation | 3 | Dependencies/Velocity/Goals |
-| **Story Refinement** | Story Parallel Implementation | N | Detail independent stories |
-
-**Coordination:** Parallel breakdown → Sequential allocation
-
----
-
-### Developer
-
-| Workflow | Pattern | Agents | Purpose |
-|----------|---------|--------|---------|
-| **Story Implementation** | Story Parallel Implementation | N | Independent stories |
-| **Test Writing** | Component Parallel Design | N | Tests per component |
-| **Code Review** | Fan-Out Research | N | One per PR |
-
-**Coordination:** Parallel implementation → Sequential integration
-
----
-
-### Creative Intelligence
-
-| Workflow | Pattern | Agents | Purpose |
-|----------|---------|--------|---------|
-| **Brainstorming** | Fan-Out Research | 3-6 | Different techniques |
-| **Research** | Fan-Out Research | 4 | Market/Competitive/Tech/User |
-| **Problem Exploration** | Parallel Section Generation | 3 | 5 Whys/Questions/Perspectives |
-| **Solution Generation** | Parallel Section Generation | 4 | Variations/Research/Constraints/Criteria |
-
-**Coordination:** Parallel exploration → Sequential synthesis
-
----
-
-### UX Designer
-
-| Workflow | Pattern | Agents | Purpose |
-|----------|---------|--------|---------|
-| **Flow Design** | Story Parallel Implementation | N | Independent user journeys |
-| **Wireframing** | Component Parallel Design | N | Different screens |
-| **Accessibility** | Parallel Section Generation | N | Checklist validation |
-
-**Coordination:** Parallel design → Sequential integration
-
----
-
-### Builder
-
-| Workflow | Pattern | Agents | Purpose |
-|----------|---------|--------|---------|
-| **Skill Creation** | Component Parallel Design | 4 | SKILL.md/scripts/templates/resources |
-| **Validation** | Parallel Section Generation | N | Different components |
-
-**Coordination:** Parallel creation → Sequential assembly
-
----
-
-## Token Budget Guidelines
-
-Each subagent has approximately 200K tokens by default. Claude Sonnet 4.6 and Opus 4.6 also support a **1M context window** (beta) — ideal for very large codebases or comprehensive research tasks. Recommended allocation:
-
-| Activity | Token Budget | Percentage |
-|----------|-------------|------------|
-| **Context loading** | ~20K | 10% |
-| **Research/exploration** | ~100K | 50% |
-| **Generation/writing** | ~50K | 25% |
-| **Verification** | ~30K | 15% |
-
-**Tips for Token Efficiency:**
-- Write concise shared context files (5-10K tokens)
-- Reference templates rather than including full text
-- Use scripts for deterministic operations
-- Lazy-load reference documentation as needed
-- Use `Explore` (Haiku-based) for fast, cheap codebase queries — saves budget for generation
-
----
-
-## Worktree Isolation
-
-For Developer skill workflows where parallel stories could conflict at the file level, subagents can run in **isolated git worktrees**. Each agent gets its own branch and working copy:
+The DAG is topologically sorted into waves. Stories in the same wave are pairwise file-disjoint and pairwise semantically safe. Wave width is capped by `maxParallel` (default 3) — a planning constraint, not an execution constraint. The dev tool decides actual concurrency.
 
 ```
-Main Branch
-    │
-    ├── story-001-worktree/  ← Agent 1 works here
-    ├── story-002-worktree/  ← Agent 2 works here
-    └── story-003-worktree/  ← Agent 3 works here
+Wave 1 (parallel-safe stories):
+  story/1.1-user-auth      story/1.2-user-profile
+  (disjoint scopes, independent — both branch off main)
+        │                        │
+        ▼                        ▼
+  integration/wave-1  ◄── merge in ascending story ID order
+        │
+        ▼
+  integration review checkpoint
+        │
+        ▼  PR: integration/wave-1 → main
+
+Wave 2 (branches off merged main):
+  story/2.1-payments       story/2.3-notification
+  (no dependencies on each other; each depends on Wave 1)
+        ...
 ```
 
-This prevents merge conflicts during parallel implementation. Results are integrated by the main context after all agents complete.
-
-**When to use worktree isolation:**
-- Stories modify the same files (e.g., shared config, index files)
-- Agents write code that may conflict
-- You need clean PR branches per story
+The plugin emits branch names and merge order as recommendations. Creating worktrees, running git operations, and managing actual concurrency are the external dev tool's responsibility.
 
 ---
 
-## Anti-Patterns
+## The planning boundary
 
-### What NOT to Do
+The plugin's last artifact is a story file at `status: ready-for-dev` and a `handoff-manifest.json`. Everything past that boundary belongs to external dev tooling.
 
-**Don't:**
-- Launch agents for trivial tasks (<1K tokens of work)
-- Pass entire conversation history to subagents
-- Create deep chains of subagents calling subagents
-- Launch dependent tasks in parallel
-- Launch 10+ agents without clear coordination strategy
-
-**Example of Anti-Pattern:**
-```markdown
-# BAD: Too many trivial agents
-Agent 1: Format this JSON
-Agent 2: Add one line to config
-Agent 3: Update a single variable name
+```
+PLUGIN BOUNDARY (this plugin)
+  Analysis → Planning → Solutioning → Implementation-Handoff
+                                              │
+                                    ready-for-dev stories
+                                    handoff-manifest.json
+                                              │
+  ════════════════════════════════════════════╪════════════════
+  EXTERNAL DEV TOOLS                          │
+                                       consume manifest
+                                       run worktree agents
+                                       execute tests
+                                       merge branches
+                                       review diffs
 ```
 
-### What TO Do
-
-**Do:**
-- Bundle related small tasks into one agent
-- Write concise, focused prompts with just needed context
-- Keep subagent depth to 1 level when possible
-- Clearly identify dependencies before parallelizing
-- Use 3-6 agents for most workflows
-
-**Example of Good Pattern:**
-```markdown
-# GOOD: Meaningful parallel work
-Agent 1: Complete market research with analysis
-Agent 2: Full competitive landscape assessment
-Agent 3: Technical feasibility evaluation
-```
+The handoff manifest (`handoff-manifest.json`) is a stable, versioned schema listing each ready story, its Owned File/Module Scope, its wave and parallel-set, and its dependencies. Any worktree-based or autonomous dev runner can consume it without needing to understand BMAD internals.
 
 ---
 
-## Monitoring Pattern
+## Sizing: one dev-day decomposition, count-based delivery
 
-Standard approach for tracking parallel agent execution:
+Stories are sized to one dev-day (roughly 2-8 hours, one agent session). There are no Fibonacci story points, no velocity, and no burndown charts. Progress is tracked by count:
 
-```markdown
-1. Launch N background agents
-2. Continue main context work (if any)
-3. Periodically check: TaskOutput(task_id, block=false)
-4. When all complete: Synthesize results
-5. Update TodoWrite with completion status
+```
+Stories remaining = count with status in { backlog | ready-for-dev | in-progress | review }
+Stories done      = count with status: done
+Completion rate   = done / total
 ```
 
-**Progress Tracking:**
-- Use TodoWrite to track agent tasks
-- Check agent status before blocking
-- Handle partial completion gracefully
-- Report progress to user during long waits
+Report progress as: "7 of 20 stories done (35%). Wave 1 complete; Wave 2 has 4 stories in progress."
+
+The plugin owns the `backlog` and `ready-for-dev` statuses. All status transitions past handoff belong to external dev tooling.
 
 ---
 
-## Integration with BMAD Workflow
+## Tracks: Quick Flow, BMad Method, Enterprise
 
-Each skill's `SKILL.md` includes a "Subagent Strategy" section defining:
+Fan-out depth scales with the planning track selected at `bmad-init`. Tracks are not numbered levels — they are planning-need decisions.
 
-```markdown
-## Subagent Strategy
+| Track | Story count signal | Planning fan-out |
+|-------|--------------------|-----------------|
+| **Quick Flow** | 1-15 stories | tech-spec → epics/stories (no PRD, no architecture) |
+| **BMad Method** | 10-50+ stories | PRD + architecture + optional UX → readiness gate → epics/stories |
+| **Enterprise** | 30+ stories | PRD + architecture + security/DevOps addenda → readiness gate → epics/stories |
 
-This skill uses parallel subagents for:
-- [Task 1]: N agents for [purpose]
-- [Task 2]: N agents for [purpose]
-
-Coordination approach: [Fan-out/Parallel sections/etc.]
-```
-
-**Example from Business Analyst SKILL.md:**
-
-```markdown
-## Subagent Strategy
-
-### Product Discovery Research Workflow
-**Pattern:** Fan-Out Research
-**Agents:** 4 parallel agents
-
-| Agent | Task | Output |
-|-------|------|--------|
-| Agent 1 | Market research | bmad/outputs/market-research.md |
-| Agent 2 | Competitive analysis | bmad/outputs/competitive-analysis.md |
-| Agent 3 | Technical feasibility | bmad/outputs/technical-feasibility.md |
-| Agent 4 | User needs analysis | bmad/outputs/user-needs.md |
-
-**Coordination:**
-1. Write shared problem context to bmad/context/discovery-brief.md
-2. Launch all 4 research agents in parallel
-3. Synthesize outputs into product brief
-```
+Story count is a soft signal. The real driver is how much up-front coordination the work demands. Tracks can be promoted as scope grows; record the change in `decision-log.md`.
 
 ---
 
-## Best Practices Summary
+## Skill catalog context
 
-### When to Use Parallel Subagents
+The 20 plugin skills that fan out or coordinate planning work:
 
-Use parallel subagents when:
-- Tasks are independent (no sequential dependencies)
-- Each task is substantial (5K+ tokens of work)
-- Total work is large enough to benefit from parallelization
-- Context can be effectively shared via files
+**Orchestration spine:** `bmad-help`, `bmad-init`
 
-### Coordination Checklist
+**Analysis:** `bmad-brainstorm`, `bmad-research`, `bmad-product-brief`, `bmad-prfaq`, `bmad-spec`
 
-Before launching parallel agents:
-- [ ] Identify truly independent tasks
-- [ ] Write shared context to `bmad/context/`
-- [ ] Define clear output locations for each agent
-- [ ] Create self-contained prompts with all needed info
-- [ ] Plan synthesis approach for combining results
+**Planning:** `bmad-prd`, `bmad-tech-spec`
 
-### Quality Assurance
+**Solutioning:** `bmad-ux`, `bmad-architecture`, `bmad-epics-and-stories`, `bmad-readiness-check`
 
-After collecting agent results:
-- [ ] Validate all agents completed successfully
-- [ ] Check for conflicts or inconsistencies
-- [ ] Synthesize results into unified output
-- [ ] Verify output meets requirements
-- [ ] Update workflow status
+**Orchestration and handoff:** `bmad-sprint-planning`, `bmad-parallel-plan`, `bmad-handoff`
+
+**Cross-phase and meta:** `bmad-correct-course`, `bmad-investigate`, `bmad-document-project`, `bmad-builder`
+
+All skills are namespaced `/bmad-planning-orchestrator:<skill>`. See the [skill catalog in the README](https://github.com/aj-geddes/claude-code-bmad-skills/blob/main/bmad-planning-orchestrator/README.md) for full descriptions.
+
+---
+
+## Reference
+
+- Conflict avoidance (semantic + file layers): `bmad-planning-orchestrator/resources/conflict-avoidance-guide.md`
+- Story sizing and split heuristics: `bmad-planning-orchestrator/resources/story-sizing-guide.md`
+- Track selection detail: `bmad-planning-orchestrator/resources/track-selection-guide.md`
+- Skill-to-upstream BMAD mapping: `bmad-planning-orchestrator/resources/bmad-method-mapping.md`
+- Wave algorithm and merge-order rationale: `bmad-planning-orchestrator/skills/bmad-parallel-plan/REFERENCE.md`
+- Story context-object contract: `bmad-planning-orchestrator/skills/bmad-epics-and-stories/REFERENCE.md`
 
 ---
 
 <div style="text-align: center; margin-top: 40px; padding: 20px; background: #e8f4f8; border-radius: 8px;" markdown="1">
 
-**Maximize Your Context Windows**
+**BMAD Method™** is created and maintained by the [BMAD Code Organization](https://github.com/bmad-code-org/BMAD-METHOD). This plugin is an independent Claude Code harness — not an official BMAD product and no endorsement is implied. All methodology credit belongs to the BMAD Code Organization.
 
-Parallel subagents enable BMAD to handle complex workflows efficiently. Each workflow can leverage 800K+ tokens across 4 agents at the standard 200K window, or even more with the 1M context window available on Claude Sonnet 4.6 and Opus 4.6. This dramatically reduces execution time while maintaining quality.
+Upstream: [github.com/bmad-code-org/BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD) · Docs: [docs.bmad-method.org](https://docs.bmad-method.org/) · Site: [bmadcodes.com/bmad-method](https://bmadcodes.com/bmad-method/)
 
 </div>

@@ -1,128 +1,168 @@
 ---
 layout: default
-title: "BMAD Method for Claude Code - AI-Powered Agile Development"
-description: "Transform Claude Code into a complete agile development environment with native skills, commands, and workflows. A Claude Code native conversion of the BMAD Method."
-keywords: "Claude Code, BMAD Method, agile development, AI development, Claude skills, AI pair programming"
+title: "BMAD Planning & Orchestrator - Claude Code Plugin"
+description: "A Claude Code plugin that harnesses the BMAD Method for planning, roadmapping, and conflict-free parallel orchestration — then hands work off to your dev tools. It plans and orchestrates. It never writes code."
+keywords: "Claude Code, BMAD Method, agile planning, AI orchestration, parallel development, Claude plugin, sprint planning, story handoff"
 ---
 
 <div class="hero-section" markdown="1">
 
-# BMAD Method for Claude Code
+# BMAD Planning & Orchestrator
 
-<p class="hero-subtitle">A complete agile development methodology converted to Claude Code native features</p>
+<p class="hero-subtitle">A Claude Code plugin that plans and orchestrates. It never writes the code.</p>
 
 <div class="badges">
-<a href="https://github.com/aj-geddes/claude-code-bmad-skills/releases"><img src="https://img.shields.io/badge/version-7.1.0-blue.svg" alt="Version" /></a>
+<a href="https://github.com/aj-geddes/claude-code-bmad-skills/releases"><img src="https://img.shields.io/badge/plugin-bmad--planning--orchestrator-orange.svg" alt="Plugin" /></a>
+<a href="https://github.com/bmad-code-org/BMAD-METHOD"><img src="https://img.shields.io/badge/method-BMAD%20v6.x-blue.svg" alt="BMAD Method v6.x" /></a>
 <a href="https://github.com/aj-geddes/claude-code-bmad-skills/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License" /></a>
-<a href="#installation"><img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg" alt="Platform" /></a>
 </div>
 
 </div>
 
 ---
 
-## Attribution & Credits
+## Attribution
 
 <div class="attribution-box" markdown="1">
 
-**This project is a Claude Code native conversion of the BMAD Method.**
+The **BMAD Method™** (Breakthrough Method for Agile AI-Driven Development) is created and maintained by the **[BMAD Code Organization](https://github.com/bmad-code-org/BMAD-METHOD)**. All methodology credit — the four-phase lifecycle, agent roles, document shapes, scale-adaptive tracks, and every concept this plugin builds on — belongs to the BMAD Code Organization.
 
-The original **BMAD Method** was created by the [BMAD Code Organization](https://github.com/bmad-code-org/BMAD-METHOD). All credit for the underlying methodology, workflow concepts, and agile framework goes to the original creators.
+This plugin is an **independent Claude Code harness** for BMAD's planning and orchestration workflows. It is not an official BMAD product and no endorsement is implied. We are only the packaging.
 
-This conversion adapts the BMAD Method to work natively with Claude Code's skills, commands, and configuration system, making it seamlessly integrated into the Claude Code development experience.
-
-**Original BMAD Method Repository:** [github.com/bmad-code-org/BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD)
+**Original BMAD Method:** [github.com/bmad-code-org/BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD) · [docs.bmad-method.org](https://docs.bmad-method.org/) · [bmadcodes.com](https://bmadcodes.com/bmad-method/)
 
 </div>
 
 ---
 
-## What is BMAD Method for Claude Code?
+## What this plugin is
 
-BMAD (Business Methodology for AI Development) transforms Claude Code into a full-featured agile development environment. Instead of using external tools or complex setups, everything works through Claude Code's native features:
+Modern coding harnesses are good at **writing code**. They are much weaker at the part that actually determines whether parallel AI development succeeds: **planning the work so that many agents can build at once without colliding.**
 
-- **9 Specialized Skills** - AI agents for different roles (Analyst, PM, Architect, Developer, etc.)
-- **4 Development Phases** - Analysis → Planning → Solutioning → Implementation
-- **Subagent Architecture** - Parallel execution with 200K token context per agent
-- **Token-Optimized** - Progressive disclosure and efficient context management
+That is exactly what the BMAD Method is good at. This plugin focuses BMAD squarely on its strongest contribution — **upstream planning and orchestration** — and deliberately stops at the handoff.
 
-### Key Benefits
+It produces the artifacts that let other tools do the dev work fast, in parallel, and without conflicts:
 
-| Feature | Description |
-|---------|-------------|
-| **Native Integration** | Uses Claude Code's built-in skills system |
-| **Parallel Subagents** | Execute complex workflows using parallel agents, each with 200K token context (1M context available on Sonnet/Opus 4.6) |
-| **4 Subagent Types** | `general-purpose`, `Explore` (Haiku, fast), `Plan`, and `Bash` for right-sized execution |
-| **Complete Workflow** | From product brief to deployed code |
-| **Right-Sized Planning** | 5 project levels from single changes to enterprise systems |
-| **Cross-Platform** | Works on Windows, macOS, Linux, and WSL |
-| **No Dependencies** | Pure Claude Code - no npm, Python, or external tools |
+- One **architecture** so every agent shares API style, data model, naming, and security approach — preventing semantic conflicts that turn parallel work into an integration nightmare. (Catching alignment in solutioning is roughly 10x cheaper than discovering it mid-build.)
+- **Stories scoped to disjoint files**, dependency-ordered, grouped into parallel **waves** — preventing file/merge conflicts that serialize teams.
+- A **tool-agnostic `handoff-manifest.json`** any dev runner can consume.
+
+### What it does NOT do
+
+No code generation. No running tests, linting, or coverage checks. No reviewing implemented diffs. The last artifact this plugin produces is a `ready-for-dev` story file and the handoff manifest. Implementation is your dev tool's job.
 
 ---
 
-## Quick Start
+## Install
 
-### For LLMs (Claude Code)
+From the Claude Code plugin marketplace:
 
 ```
-1. Say "Initialize BMAD for this project" to activate bmad-orchestrator
-2. Say "What's my BMAD status?" to check workflow progress
-3. Follow the phase-appropriate skill workflows
+/plugin marketplace add aj-geddes/claude-code-bmad-skills
+/plugin install bmad-planning-orchestrator@bmad-method-harness
+/reload-plugins
 ```
 
-### For Humans
+Skills are namespaced `/bmad-planning-orchestrator:<skill>` and most auto-invoke based on what you are doing.
 
-1. **Install BMAD Skills:**
-   ```bash
-   # Clone the repository
-   git clone https://github.com/aj-geddes/claude-code-bmad-skills.git
-   cd claude-code-bmad-skills
+For local development and testing:
 
-   # Copy skills to Claude Code directory
-   cp -r bmad-skills ~/.claude/skills/bmad-skills
-   find ~/.claude/skills/bmad-skills -name "*.sh" -exec chmod +x {} \;
-   ```
-
-2. **Restart Claude Code** (skills load on startup)
-
-3. **Initialize in your project:**
-   ```
-   Say: "Initialize BMAD for this project"
-
-   This creates:
-   - bmad/config.yaml (project configuration)
-   - bmad/context/ (shared subagent context)
-   - bmad/outputs/ (subagent outputs)
-   - docs/ (workflow outputs)
-   ```
+```
+claude --plugin-dir ./bmad-planning-orchestrator
+```
 
 ---
 
-## The Four Phases
+## The planning thesis
 
-### Phase 1: Analysis
-**Skills:** business-analyst, creative-intelligence
-**Say:** "Create a product brief" or "Research the market for [topic]"
+This plugin exists because **planning is the multiplier**. When the upstream work is done well — a shared architecture, stories scoped to owned files, a dependency-ordered wave plan — an AI dev tool can fan out across many parallel workstreams with no coordination overhead. When the upstream work is skipped, parallel dev produces collisions, rework, and integration pain.
 
-Discover requirements, research markets, and define the problem space. Uses parallel subagents for market/competitive/technical/user research.
+The BMAD Method provides exactly the planning discipline that makes parallel AI development reliable. This plugin harnesses it.
 
-### Phase 2: Planning
-**Skills:** product-manager, ux-designer
-**Say:** "Create a PRD" or "Create UX design"
+---
 
-Create comprehensive requirements and design documents. Parallel section generation for efficient PRD creation.
+## The flow
 
-### Phase 3: Solutioning
-**Skills:** system-architect, ux-designer
-**Say:** "Design the system architecture" or "Run solutioning gate check"
+BMAD's four phases, right-sized by an interactive **track** selection at init time:
 
-Design system architecture and validate against requirements. Parallel component design with integration architecture.
+| Track | Scope | Planning phases |
+|-------|-------|-----------------|
+| **Quick Flow** | 1-15 stories | Tech-spec only |
+| **BMad Method** | 10-50+ stories | PRD + Architecture (+ optional UX) |
+| **Enterprise** | 30+ stories | PRD + Architecture + Security + DevOps |
 
-### Phase 4: Implementation
-**Skills:** scrum-master, developer
-**Say:** "Plan the sprint" or "Implement STORY-001"
+```
+bmad-init ──▶ select track, create workspace + decision-log + project-context
+    │
+ANALYSIS (optional)   brainstorm · research · product-brief · prfaq · spec
+    │
+PLANNING              prd  (or tech-spec for Quick Flow)
+    │
+SOLUTIONING           ux (if UI) · architecture · epics-and-stories · readiness-check
+    │                                                   └── "Planning Ends Here"
+ORCHESTRATION         sprint-planning · parallel-plan · handoff
+    │
+    ▼
+ready-for-dev story files + handoff-manifest.json  ──▶  YOUR DEV TOOL
+```
 
-Plan sprints, create stories, and implement features. Parallel story implementation for independent tasks.
+`bmad-help` is the spine: at any point it reads your artifact state and tells you which skill to run next. Sizing is one-dev-day story decomposition and count-based delivery — no Fibonacci points, no velocity, no burndown.
+
+---
+
+## Skills overview
+
+The plugin ships **20 skills** across four groups:
+
+**Orchestration spine**
+
+| Skill | What it does |
+|-------|--------------|
+| `bmad-help` | "What do I run next?" router; reads artifact state, skips optional phases |
+| `bmad-init` | Interactive track selection; scaffolds workspace, `decision-log.md`, `project-context.md` |
+
+**Analysis** (all optional — enter at any point)
+
+| Skill | What it does |
+|-------|--------------|
+| `bmad-brainstorm` | Structured ideation (SCAMPER, SWOT, 5 Whys, and more) |
+| `bmad-research` | Market, domain, and technical research — web-sourced and cited |
+| `bmad-product-brief` | Product brief — Create / Update / Validate |
+| `bmad-prfaq` | Working-Backwards press release + FAQ |
+| `bmad-spec` | Five-field `SPEC.md` kernel (problem, capabilities, constraints, non-goals, success metrics) |
+
+**Planning**
+
+| Skill | What it does |
+|-------|--------------|
+| `bmad-prd` | PRD with FRs/NFRs, epics, MoSCoW — Create / Update / Validate; emits `prd.md` + `addendum.md` + `decision-log.md` |
+| `bmad-tech-spec` | Lightweight tech spec (Quick Flow track) |
+
+**Solutioning**
+
+| Skill | What it does |
+|-------|--------------|
+| `bmad-ux` | Two-document UX contract: `DESIGN.md` (tokens, WCAG AA) + `EXPERIENCE.md` (journeys) |
+| `bmad-architecture` | `architecture.md` + ADRs; systematic NFR coverage; semantic-conflict prevention |
+| `bmad-epics-and-stories` | Shards into epics + `{epic}.{story}.{slug}.story.md` compiled-context stories with owned-file scope |
+| `bmad-readiness-check` | PASS / CONCERNS / FAIL gate before handoff |
+
+**Orchestration and handoff**
+
+| Skill | What it does |
+|-------|--------------|
+| `bmad-sprint-planning` | `sprint-status.yaml` roadmap — sequencing only, no points or velocity |
+| `bmad-parallel-plan` | Dependency DAG → conflict-free waves with worktree branches and merge order |
+| `bmad-handoff` | Tool-agnostic `handoff-manifest.json` for external dev runners |
+
+**Cross-phase and meta**
+
+| Skill | What it does |
+|-------|--------------|
+| `bmad-correct-course` | Mid-stream scope change → re-plan (never re-code) |
+| `bmad-investigate` | Forensic, evidence-graded triage → a story to hand off |
+| `bmad-document-project` | Brownfield current-state docs (read-only) |
+| `bmad-builder` | Scaffold and validate custom planning skills |
 
 ---
 
@@ -132,32 +172,27 @@ Plan sprints, create stories, and implement features. Parallel story implementat
 
 <div class="docs-card">
 <h3><a href="./getting-started">Getting Started</a></h3>
-<p>Installation, first steps, and your first BMAD project.</p>
+<p>Install the plugin, run your first bmad-init, and walk through a Quick Flow project end to end.</p>
 </div>
 
 <div class="docs-card">
 <h3><a href="./skills/">Skills Reference</a></h3>
-<p>Detailed documentation for all 9 BMAD skills.</p>
-</div>
-
-<div class="docs-card">
-<h3><a href="./commands/">Commands Reference</a></h3>
-<p>Complete guide to all 15 workflow commands.</p>
-</div>
-
-<div class="docs-card">
-<h3><a href="./subagent-patterns">Subagent Patterns</a></h3>
-<p>Learn how BMAD leverages parallel subagents for maximum efficiency.</p>
+<p>Detailed documentation for all 20 skills: triggers, inputs, outputs, and what each skill produces.</p>
 </div>
 
 <div class="docs-card">
 <h3><a href="./examples/">Examples</a></h3>
-<p>Real-world examples and complete workflow walkthroughs.</p>
+<p>Walkthroughs of the three tracks — Quick Flow, BMad Method, and Enterprise — with real artifact samples.</p>
+</div>
+
+<div class="docs-card">
+<h3><a href="./subagent-patterns">Subagent Patterns</a></h3>
+<p>How the plugin fans out planning work across parallel subagents and coordinates the results.</p>
 </div>
 
 <div class="docs-card">
 <h3><a href="./configuration">Configuration</a></h3>
-<p>Customize BMAD for your needs.</p>
+<p>userConfig options: output folder, default track, and max parallel workstreams.</p>
 </div>
 
 <div class="docs-card">
@@ -169,137 +204,16 @@ Plan sprints, create stories, and implement features. Parallel story implementat
 
 ---
 
-## Example Session
-
-Here's what a typical BMAD session looks like:
-
-```markdown
-User: I want to build a task management app
-
-Claude: I'll help you build that! Let me initialize BMAD in your project.
-
-[bmad-orchestrator skill activates]
-
-Created:
-- bmad/config.yaml (Project: Task Management App, Level: 2, Type: web-app)
-- bmad/context/ (shared subagent context)
-- bmad/outputs/ (subagent outputs)
-- docs/ (workflow documentation)
-
-Project initialized as Level 2 (Medium feature set).
-
-Recommended next step: Create a product brief to define scope and goals.
-
-User: Create a product brief
-
-Claude: [business-analyst skill activates]
-
-I'll create a comprehensive product brief using parallel research agents.
-
-Launching subagents:
-- Agent 1: Market research
-- Agent 2: Competitive analysis
-- Agent 3: Technical feasibility
-- Agent 4: User needs analysis
-
-[After parallel execution]
-
-Output saved to: docs/product-brief-[timestamp].md
-
-Phase 1 complete. Ready for Phase 2 (Planning).
-
-User: What's my BMAD status?
-
-Claude: [bmad-orchestrator skill activates]
-
-Phase 1 - Analysis: Complete ✓
-Phase 2 - Planning: Not started
-
-Recommended: Create a PRD (for Level 2+ projects)
-
-User: Create a PRD
-
-Claude: [product-manager skill activates]
-
-I'll create your PRD using parallel section generation...
-
-[Parallel agents generate FR, NFR, Epics, and Stories sections]
-
-Output saved to: docs/prd-[timestamp].md
-...
-```
-
----
-
-## Project Levels
-
-BMAD right-sizes your planning based on project complexity:
-
-| Level | Name | Stories | Example | Required Docs |
-|-------|------|---------|---------|---------------|
-| 0 | Atomic | 1 | Bug fix | Tech Spec only |
-| 1 | Small | 1-10 | Single feature | Tech Spec only |
-| 2 | Medium | 5-15 | Feature set | PRD + Architecture |
-| 3 | Complex | 12-40 | System integration | Full workflow |
-| 4 | Enterprise | 40+ | Platform expansion | Full workflow + UX |
-
----
-
-## Skills Overview
-
-| Skill | Phase | Purpose | Subagent Strategy |
-|-------|-------|---------|-------------------|
-| [bmad-orchestrator](./skills/#bmad-orchestrator) | All | Orchestration and routing | Parallel status checks |
-| [business-analyst](./skills/#business-analyst) | 1 | Requirements discovery | 4-way parallel research |
-| [product-manager](./skills/#product-manager) | 2 | PRD and planning | Parallel section generation |
-| [ux-designer](./skills/#ux-designer) | 2-3 | Interface design | Parallel screen design |
-| [system-architect](./skills/#system-architect) | 3 | Technical architecture | Parallel component design |
-| [scrum-master](./skills/#scrum-master) | 4 | Sprint planning | Parallel epic breakdown |
-| [developer](./skills/#developer) | 4 | Implementation | Parallel story implementation |
-| [creative-intelligence](./skills/#creative-intelligence) | Any | Brainstorming/research | Multi-technique parallel |
-| [builder](./skills/#builder) | N/A | Custom skills/workflows | Parallel component creation |
-
----
-
-## Why Claude Code Native?
-
-Traditional development methodologies require:
-- Separate project management tools
-- Multiple documentation systems
-- Context switching between tools
-- Manual status tracking
-
-BMAD Skills provides:
-- **Single Interface** - Everything in your terminal through natural language
-- **Parallel Execution** - Subagents with 200K tokens each for massive parallelization
-- **Persistent Context** - Shared context via bmad/context/ for agent coordination
-- **Intelligent Routing** - Automatic skill activation based on user intent
-- **Token Efficiency** - Progressive disclosure and efficient context management
-
----
-
-## Community & Support
+## Community and support
 
 - **GitHub Issues:** [Report bugs or request features](https://github.com/aj-geddes/claude-code-bmad-skills/issues)
-- **Contributing:** See [CONTRIBUTING.md](https://github.com/aj-geddes/claude-code-bmad-skills/blob/main/CONTRIBUTING.md)
+- **BMAD Method (upstream):** [github.com/bmad-code-org/BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD)
+- **BMAD Discord:** [discord.gg/gk8jAdXWmj](https://discord.gg/gk8jAdXWmj)
 - **License:** MIT
 
 ---
 
-## Version History
-
-| Version | Date | Changes |
-|---------|------|---------|
-| 7.1.0 | 2026-02-22 | Updated for Claude Sonnet/Opus 4.6; correct hook format with `type` field and matcher structure; added Bash subagent type; 1M context window notes; worktree isolation docs; new hook events reference |
-| 7.0.0 | 2025-12-09 | bmad-skills architecture with subagent patterns |
-| 6.0.3 | 2025-11-12 | PowerShell WSL fixes |
-| 6.0.2 | 2025-11-12 | Added slash commands installation |
-| 6.0.1 | 2025-11-12 | PowerShell installer rewrite |
-| 6.0.0 | 2025-11-01 | Initial Claude Code native release |
-
----
-
 <div class="cta-section">
-<p>Ready to transform your development workflow?</p>
+<p>Ready to plan work that parallel agents can actually execute?</p>
 <a href="./getting-started">Get Started</a>
 </div>
