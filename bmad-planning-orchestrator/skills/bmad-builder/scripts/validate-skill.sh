@@ -33,7 +33,7 @@ Checks:
 
 Examples:
   $(basename "$0") ./SKILL.md
-  $(basename "$0") \${CLAUDE_PLUGIN_ROOT}/skills/bmad-risk-map/SKILL.md
+  $(basename "$0") \${CLAUDE_PLUGIN_ROOT}/skills/bmad-example/SKILL.md
 EOF
     exit 1
 }

@@ -5,7 +5,7 @@
     "url": "https://github.com/aj-geddes"
   },
   "description": "A community marketplace hosting the BMAD Planning & Orchestrator — a Claude Code harness for the BMAD Method by the BMAD Code Organization, focused on planning, roadmapping, and conflict-free parallel orchestration.",
-  "version": "1.0.0",
+  "version": "0.5.0",
   "plugins": [
     {
       "name": "bmad-planning-orchestrator",

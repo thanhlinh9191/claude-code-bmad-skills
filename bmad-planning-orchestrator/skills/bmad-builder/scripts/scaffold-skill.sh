@@ -27,7 +27,7 @@ Creates:
 The skill name must be lowercase and hyphenated, prefixed with "bmad-".
 
 Examples:
-  $(basename "$0") bmad-risk-map
+  $(basename "$0") bmad-example
   $(basename "$0") bmad-stakeholder-brief
   $(basename "$0") bmad-release-plan
 
@@ -46,7 +46,7 @@ SKILL_NAME="$1"
 
 # Validate name format (lowercase, hyphenated)
 if [[ ! "$SKILL_NAME" =~ ^[a-z][a-z0-9-]*$ ]]; then
-    echo -e "${RED}Error: Skill name must be lowercase and hyphenated (e.g., 'bmad-risk-map')${NC}"
+    echo -e "${RED}Error: Skill name must be lowercase and hyphenated (e.g., 'bmad-example')${NC}"
     exit 1
 fi
 

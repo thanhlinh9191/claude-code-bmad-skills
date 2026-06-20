@@ -62,6 +62,11 @@ Then `/reload-plugins` (or restart Claude Code). Skills are namespaced
 `/bmad-planning-orchestrator:<skill>` and most are auto-invoked by Claude based
 on what you're doing.
 
+> **Note:** the marketplace manifest lives at the **repository root**
+> (`.claude-plugin/marketplace.json`), so `marketplace add` targets the whole
+> repo — not this `bmad-planning-orchestrator/` subdirectory. Add the repo, then
+> install the plugin from it.
+
 Local development / testing:
 
 ```text

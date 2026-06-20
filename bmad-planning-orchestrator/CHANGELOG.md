@@ -4,11 +4,11 @@ All notable changes to the **BMAD Planning & Orchestrator** plugin are recorded
 here. The plugin tracks the **BMAD Method v6.x** by the BMAD Code Organization;
 each release notes the upstream line it follows.
 
-## [1.0.0] — 2026-06-19
+## [0.5.0] — 2026-06-19
 
-First release as a Claude Code **plugin**. Tracks upstream **BMAD Method v6.x**
-(skills-centric architecture, scale-adaptive tracks, three-intent planning,
-decision log, two-document UX, SPEC kernel).
+Initial public preview of the Claude Code **plugin** (pre-1.0). Tracks upstream
+**BMAD Method v6.x** (skills-centric architecture, scale-adaptive tracks,
+three-intent planning, decision log, two-document UX, SPEC kernel).
 
 ### Added
 - Plugin packaging: `.claude-plugin/plugin.json` + marketplace

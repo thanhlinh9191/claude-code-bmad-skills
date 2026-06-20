@@ -20,7 +20,7 @@ Always clarify which intent applies before starting.
 ### Create — new planning skill from scratch
 
 1. Gather requirements (use TodoWrite to track):
-   - Skill name (lowercase-hyphen, e.g. `bmad-risk-map`)
+   - Skill name (lowercase-hyphen, prefixed `bmad-`; e.g. `bmad-example`)
    - What planning/orchestration problem it solves
    - Trigger phrases users will say
    - Allowed tools (subset of: Read, Write, Edit, Bash, Glob, Grep, WebSearch, WebFetch, TodoWrite)
@@ -35,7 +35,7 @@ Always clarify which intent applies before starting.
 
 3. Fill the SKILL.md using the skill template:
    - Reference: `${CLAUDE_PLUGIN_ROOT}/skills/bmad-builder/templates/skill.template.md`
-   - Keep body under 5K tokens; push long reference detail to a sibling `REFERENCE.md`
+   - Keep body under 5K tokens; push long reference detail to a sibling `REFERENCE.md` in the new skill's own folder
    - Use `${CLAUDE_PLUGIN_ROOT}` for all paths to bundled scripts/templates
    - Artifacts go to `bmad-output/` (honor user-configured folder)
    - End with the mandatory attribution footer (see template)
